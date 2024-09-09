@@ -1,0 +1,90 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator typegraphql {
+  provider = "typegraphql-prisma"
+  output   = "../prisma/generated/type-graphql"
+}
+
+model User {
+  id                    String      @id @default(uuid())
+  email                 String      @unique
+  name                  String
+  /// @TypeGraphQL.omit(output: true)
+  password              String
+  role                  Role
+  verifitcationOtp      String?
+  verificationOtpExpiry DateTime?
+  verification          Boolean     @default(false)
+  resetPassOtp          String?
+  resetPassOtpExpiry    DateTime?
+  customer              Customer?
+  restaurant            Restaurant?
+}
+
+model Customer {
+  id      Int     @id @default(autoincrement())
+  address String
+  user    User    @relation(fields: [userId], references: [id])
+  userId  String  @unique
+  orders  Order[]
+}
+
+model Restaurant {
+  id             Int              @id @default(autoincrement())
+  location       String
+  user           User             @relation(fields: [userId], references: [id])
+  userId         String           @unique
+  operatingHours OperatingHours[]
+  foods          Food[]
+}
+
+model OperatingHours {
+  id           Int        @id @default(autoincrement())
+  dayOfWeek    DayOfWeek
+  openTime     String
+  closeTime    String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+model Food {
+  id           Int        @id @default(autoincrement())
+  name         String
+  price        Float
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+  orders       Order[]
+}
+
+model Order {
+  id         Int      @id @default(autoincrement())
+  customer   Customer @relation(fields: [customerId], references: [id])
+  customerId Int
+  food       Food     @relation(fields: [foodId], references: [id])
+  foodId     Int
+  quantity   Int
+  totalPrice Float
+  createdAt  DateTime @default(now())
+}
+
+enum Role {
+  CUSTOMER
+  RESTAURANT
+}
