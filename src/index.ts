@@ -6,10 +6,12 @@ import { buildSchema } from "type-graphql";
 import { PrismaClient } from "@prisma/client";
 import { AuthResolver } from "./resolvers/authResolver";
 import { resolvers } from "../prisma/generated/type-graphql";
+import { RestaurantResolver } from "./resolvers/restaurantResolver";
+import { CustomerResolver } from "./resolvers/customerResolver";
 
 const main = async () => {
   const schema = await buildSchema({
-    resolvers: [...resolvers, AuthResolver],
+    resolvers: [...resolvers, AuthResolver,RestaurantResolver,CustomerResolver],
     validate: false,
   });
 
