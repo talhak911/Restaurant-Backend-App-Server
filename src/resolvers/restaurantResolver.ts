@@ -57,24 +57,24 @@ export class RestaurantResolver {
     }
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => String || Boolean)
   @UseMiddleware(isAuth)
   async updateRestaurant(
     @Arg("data") data: RestaurantUpdateInput,
     @Info() info: GraphQLResolveInfo,
     @Ctx() ctx: MyContext
-  ): Promise<Boolean> {
+  ): Promise<boolean |string> {
     try {
       const userId = ctx?.user?.id;
       const updateOneRestaurantResolver = new UpdateOneRestaurantResolver();
       const args = new UpdateOneRestaurantArgs();
       args.where = { userId };
       args.data = data;
-      await updateOneRestaurantResolver.updateOneRestaurant(ctx, info, args);
+      const res= await updateOneRestaurantResolver.updateOneRestaurant(ctx, info, args);
       return true;
     } catch (error:any) {
       console.log("error while updating restaurant data ", error);
-      return error.message;
+      return "something went wrong";
     }
   }
 }
