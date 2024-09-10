@@ -19,7 +19,7 @@ model User {
   /// @TypeGraphQL.omit(output: true)
   password              String
   role                  Role
-  verifitcationOtp      String?
+  verificationOtp      String?
   verificationOtpExpiry DateTime?
   verification          Boolean     @default(false)
   resetPassOtp          String?
@@ -29,59 +29,69 @@ model User {
 }
 
 model Customer {
-  id      Int     @id @default(autoincrement())
-  address String
-  user    User    @relation(fields: [userId], references: [id])
-  userId  String  @unique
+  id      Int      @id @default(autoincrement())
+  address String[]
+  user    User     @relation(fields: [userId], references: [id])
+  userId  String   @unique
   orders  Order[]
 }
 
 model Restaurant {
   id             Int              @id @default(autoincrement())
+  name String
   location       String
   user           User             @relation(fields: [userId], references: [id])
   userId         String           @unique
-  operatingHours OperatingHours[]
-  foods          Food[]
+  operatingHours String
+  menu           Food[]
+  orders         Order[]
 }
 
-model OperatingHours {
-  id           Int        @id @default(autoincrement())
-  dayOfWeek    DayOfWeek
-  openTime     String
-  closeTime    String
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
-  restaurantId Int
-}
-
-enum DayOfWeek {
-  MONDAY
-  TUESDAY
-  WEDNESDAY
-  THURSDAY
-  FRIDAY
-  SATURDAY
-  SUNDAY
-}
 
 model Food {
-  id           Int        @id @default(autoincrement())
+  id           Int          @id @default(autoincrement())
   name         String
+  description  String
+  category     FoodCategory
   price        Float
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurant   Restaurant   @relation(fields: [restaurantId], references: [id])
   restaurantId Int
-  orders       Order[]
+  orders       OrderItem[]
+}
+
+model OrderItem {
+  id           Int         @id @default(autoincrement())
+  food         Food        @relation(fields: [foodId], references: [id])
+  foodId       Int
+  quantity     Int
+  order        Order       @relation(fields: [orderId], references: [id])
+  orderId      Int
+  totalPrice   Float
 }
 
 model Order {
-  id         Int      @id @default(autoincrement())
-  customer   Customer @relation(fields: [customerId], references: [id])
-  customerId Int
-  food       Food     @relation(fields: [foodId], references: [id])
-  foodId     Int
-  quantity   Int
-  totalPrice Float
-  createdAt  DateTime @default(now())
+  id           Int         @id @default(autoincrement())
+  customer     Customer    @relation(fields: [customerId], references: [id])
+  customerId   Int
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+  items        OrderItem[]
+  status       OrderStatus @default(PENDING)
+  createdAt    DateTime    @default(now())
+}
+
+enum OrderStatus {
+  PENDING
+  DELIVERED
+  CANCELED
+}
+
+enum FoodCategory {
+  SNACKS
+  MEAL
+  VEGAN
+  DESSERT
+  DRINKS
 }
 
 enum Role {
