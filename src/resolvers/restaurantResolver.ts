@@ -18,6 +18,7 @@ import {
   UpdateOneRestaurantResolver,
 } from "../../prisma/generated/type-graphql";
 import { GraphQLResolveInfo } from "graphql";
+import { MyContext } from "../types/types";
 
 @Resolver()
 @UseMiddleware(isAuth)
@@ -27,10 +28,10 @@ export class RestaurantResolver {
     // @Arg("id") restaurantId: number,
     @Info() info: GraphQLResolveInfo,
     @Arg("data") data: FoodCreateWithoutRestaurantInput,
-    @Ctx() ctx: any
+    @Ctx() ctx: MyContext
   ): Promise<boolean | string> {
     try {
-      const userId = ctx.user.id;
+      const userId = ctx?.user?.id;
       const restaurant = await ctx.prisma.restaurant.findUnique({
         // where: { id: restaurantId },
         where: { userId},
@@ -61,10 +62,10 @@ export class RestaurantResolver {
   async updateRestaurant(
     @Arg("data") data: RestaurantUpdateInput,
     @Info() info: GraphQLResolveInfo,
-    @Ctx() ctx: any
+    @Ctx() ctx: MyContext
   ): Promise<Boolean> {
     try {
-      const userId = ctx.user.id;
+      const userId = ctx?.user?.id;
       const updateOneRestaurantResolver = new UpdateOneRestaurantResolver();
       const args = new UpdateOneRestaurantArgs();
       args.where = { userId };

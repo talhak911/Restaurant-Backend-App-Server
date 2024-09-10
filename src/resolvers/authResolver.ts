@@ -10,7 +10,7 @@ import {
 import bcrypt from "bcrypt";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { generateOTP, isEmailValid } from "../utils/utils";
-import prisma from "../../prisma/client";
+// import prisma from "../../prisma/client";
 import { isAuth } from "../middleware/middleware";
 import {
   CreateOneCustomerArgs,
@@ -28,6 +28,7 @@ import {
 } from "../../prisma/generated/type-graphql";
 import { sendOTPEmail } from "../utils/mailer";
 import { GraphQLResolveInfo } from "graphql/type";
+import { MyContext } from "../types/types";
 interface JwtPayloadWithId extends JwtPayload {
   id: string;
   role: string;
@@ -36,7 +37,7 @@ interface JwtPayloadWithId extends JwtPayload {
 export class AuthResolver {
   @Mutation(() => User)
   async signUp(
-    @Ctx() ctx: any,
+    @Ctx() ctx: MyContext,
     @Info() info: GraphQLResolveInfo,
     @Arg("data") data: UserCreateInput
     // @Arg("customer", { nullable: true }) customer?: CustomerCreateWithoutUserInput,
@@ -46,7 +47,7 @@ export class AuthResolver {
     if (!isEmailValid(email)) {
       throw new Error("Email is not valid");
     }
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await ctx.prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       throw new Error("User already exists");
     }
@@ -62,7 +63,7 @@ export class AuthResolver {
     const hashedPassword = await bcrypt.hash(password, 10);
     const otp = generateOTP();
     await sendOTPEmail(email, otp, "Verify");
-    const user = await prisma.user.create({
+    const user = await ctx.prisma.user.create({
       data: {
         name: name,
         email: email,
@@ -98,10 +99,11 @@ export class AuthResolver {
 
   @Mutation(() => Boolean)
   async verifyAccount(
+    @Ctx() ctx: MyContext,
     @Arg("email") email: string,
     @Arg("otp") otp: string
   ): Promise<boolean> {
-    const user = await prisma.user.findUnique({
+    const user = await ctx.prisma.user.findUnique({
       where: { email },
     });
 
@@ -112,7 +114,7 @@ export class AuthResolver {
     ) {
       throw new Error("Invalid or expired OTP");
     }
-    await prisma.user.update({
+    await ctx.prisma.user.update({
       where: { email },
       data: {
         verification: true,
@@ -126,11 +128,12 @@ export class AuthResolver {
 
   @Mutation(() => Boolean)
   async resetPassword(
+    @Ctx() ctx: MyContext,
     @Arg("email") email: string,
     @Arg("otp") otp: string,
     @Arg("password") password: string
   ): Promise<boolean> {
-    const user = await prisma.user.findUnique({
+    const user = await ctx.prisma.user.findUnique({
       where: { email },
     });
 
@@ -142,7 +145,7 @@ export class AuthResolver {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    await prisma.user.update({
+    await ctx.prisma.user.update({
       where: {
         id: user.id,
       },
@@ -158,13 +161,13 @@ export class AuthResolver {
   @Mutation(() => Boolean)
   @UseMiddleware(isAuth)
   async changePassword(
-    @Ctx() context: any,
+    @Ctx() ctx: MyContext,
     @Arg("password") password: string,
     @Arg("newPassword") newPassword: string
   ): Promise<boolean> {
-    const userPayload = context.user;
-    const user = await prisma.user.findUnique({
-      where: { id: userPayload.id },
+    const userPayload = ctx?.user;
+    const user = await ctx.prisma.user.findUnique({
+      where: { id: userPayload?.id },
     });
     if (!user) {
       throw new Error("No user found");
@@ -175,7 +178,7 @@ export class AuthResolver {
       throw new Error("New password must be at least 8 characters long.");
     }
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await prisma.user.update({
+    await ctx.prisma.user.update({
       where: {
         id: user.id,
       },
@@ -188,10 +191,11 @@ export class AuthResolver {
 
   @Mutation(() => Boolean)
   async requestOtp(
+    @Ctx() ctx: MyContext,
     @Arg("email") email: string,
     @Arg("type") type: "Verify" | "Reset"
   ): Promise<boolean> {
-    const user = await prisma.user.findUnique({
+    const user = await ctx.prisma.user.findUnique({
       where: { email },
     });
     if (!user) {
@@ -200,7 +204,7 @@ export class AuthResolver {
     const otp = generateOTP();
     await sendOTPEmail(email, otp, type);
     if (type === "Verify") {
-      await prisma.user.update({
+      await ctx.prisma.user.update({
         where: { email },
         data: {
           verificationOtp: otp,
@@ -208,7 +212,7 @@ export class AuthResolver {
         },
       });
     } else {
-      await prisma.user.update({
+      await ctx.prisma.user.update({
         where: { email },
         data: {
           resetPassOtp: otp,
@@ -237,15 +241,15 @@ export class AuthResolver {
   @Query(() => User, { nullable: true })
   @UseMiddleware(isAuth)
   async getCurrentUser(
-    @Ctx() context: any,
+    @Ctx() ctx: MyContext,
     @Info() info: GraphQLResolveInfo
   ): Promise<User | null> {
     try {
-      const userPayload = context.user;
+      const userPayload = ctx?.user;
       const findUniqueUserResolver = new FindUniqueUserResolver();
       const args = new FindUniqueUserArgs();
-      args.where = { id: userPayload.id };
-      const user = await findUniqueUserResolver.user(context, info, args);
+      args.where = { id: userPayload?.id };
+      const user = await findUniqueUserResolver.user(ctx, info, args);
       return user;
     } catch (error: any) {
       throw new Error(error.message);
@@ -254,10 +258,11 @@ export class AuthResolver {
 
   @Query(() => String)
   async signIn(
+    @Ctx() ctx: MyContext,
     @Arg("email") email: string,
     @Arg("password") password: string
   ): Promise<string> {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await ctx.prisma.user.findUnique({ where: { email } });
 
     if (!user) throw new Error("User not found");
     const isValid = await bcrypt.compare(password, user.password);
