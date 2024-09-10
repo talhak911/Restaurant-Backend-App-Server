@@ -17,8 +17,12 @@ import {
   CreateOneCustomerResolver,
   CreateOneRestaurantArgs,
   CreateOneRestaurantResolver,
+  CustomerCreateInput,
+  CustomerCreateWithoutUserInput,
   FindUniqueUserArgs,
   FindUniqueUserResolver,
+  RestaurantCreateInput,
+  RestaurantCreateWithoutUserInput,
   User,
   UserCreateInput,
 } from "../../prisma/generated/type-graphql";
@@ -35,6 +39,8 @@ export class AuthResolver {
     @Ctx() ctx: any,
     @Info() info: GraphQLResolveInfo,
     @Arg("data") data: UserCreateInput
+    // @Arg("customer", { nullable: true }) customer?: CustomerCreateWithoutUserInput,
+    // @Arg("restaurant", { nullable: true }) restaurant?: RestaurantCreateWithoutUserInput
   ): Promise<User> {
     const { name, email, password, role } = data;
     if (!isEmailValid(email)) {
@@ -44,6 +50,15 @@ export class AuthResolver {
     if (existingUser) {
       throw new Error("User already exists");
     }
+
+    // if (role === "CUSTOMER" && !customer) {
+    //   throw new Error("Please provide customer information");
+    // }
+    // if (role === "RESTAURANT" && !restaurant) {
+    //   console.log("REs" , restaurant)
+    //   throw new Error("Please provide restaurant information");
+    // }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const otp = generateOTP();
     await sendOTPEmail(email, otp, "Verify");
@@ -69,11 +84,9 @@ export class AuthResolver {
       const createRestaurantResolver = new CreateOneRestaurantResolver();
       const restaurantArgs = new CreateOneRestaurantArgs();
       restaurantArgs.data = {
-        location: "Default location",
-        name,
-        operatingHours:"",
         user: { connect: { id: user.id } },
       };
+
       await createRestaurantResolver.createOneRestaurant(
         ctx,
         info,
