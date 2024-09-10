@@ -19,7 +19,7 @@ model User {
   /// @TypeGraphQL.omit(output: true)
   password              String
   role                  Role
-  verificationOtp      String?
+  verificationOtp       String?
   verificationOtpExpiry DateTime?
   verification          Boolean     @default(false)
   resetPassOtp          String?
@@ -37,16 +37,15 @@ model Customer {
 }
 
 model Restaurant {
-  id             Int              @id @default(autoincrement())
-  name String
-  location       String
-  user           User             @relation(fields: [userId], references: [id])
-  userId         String           @unique
-  operatingHours String
+  id             Int     @id @default(autoincrement())
+  name           String?
+  location       String?
+  user           User    @relation(fields: [userId], references: [id])
+  userId         String  @unique
+  operatingHours String?
   menu           Food[]
   orders         Order[]
 }
-
 
 model Food {
   id           Int          @id @default(autoincrement())
@@ -60,13 +59,13 @@ model Food {
 }
 
 model OrderItem {
-  id           Int         @id @default(autoincrement())
-  food         Food        @relation(fields: [foodId], references: [id])
-  foodId       Int
-  quantity     Int
-  order        Order       @relation(fields: [orderId], references: [id])
-  orderId      Int
-  totalPrice   Float
+  id         Int   @id @default(autoincrement())
+  food       Food  @relation(fields: [foodId], references: [id])
+  foodId     Int
+  quantity   Int
+  order      Order @relation(fields: [orderId], references: [id])
+  orderId    Int
+  totalPrice Float
 }
 
 model Order {
