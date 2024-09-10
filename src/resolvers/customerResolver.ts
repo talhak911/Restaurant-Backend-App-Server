@@ -30,7 +30,7 @@ export class CustomerResolver {
     @Ctx() ctx: any
   ): Promise<boolean | string> {
     try {
-      const userId = ctx.payload.id;
+      const userId = ctx.user.id;
       const customer = await prisma.customer.findUnique({
         where: { userId },
       });

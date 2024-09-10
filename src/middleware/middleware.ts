@@ -9,7 +9,7 @@ export const isAuth: MiddlewareFn<any> = async ({ context }, next) => {
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET!);
-    context.payload = payload;
+    context.user = payload;
   } catch (err) {
     throw new Error("Authorization failed");
   }

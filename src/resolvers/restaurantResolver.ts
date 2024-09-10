@@ -30,10 +30,10 @@ export class RestaurantResolver {
     @Ctx() ctx: any
   ): Promise<boolean | string> {
     try {
-      const userId = ctx.payload.id;
-      const restaurant = await prisma.restaurant.findUnique({
+      const userId = ctx.user.id;
+      const restaurant = await ctx.prisma.restaurant.findUnique({
         // where: { id: restaurantId },
-        where: { userId },
+        where: { userId},
       });
       // if (!restaurant || restaurant.userId !== userId) {
       if (!restaurant) {
@@ -59,21 +59,21 @@ export class RestaurantResolver {
   @Mutation(() => Boolean)
   @UseMiddleware(isAuth)
   async updateRestaurant(
-    @Arg("id") id: number,
     @Arg("data") data: RestaurantUpdateInput,
     @Info() info: GraphQLResolveInfo,
     @Ctx() ctx: any
   ): Promise<Boolean> {
     try {
+      const userId = ctx.user.id;
       const updateOneRestaurantResolver = new UpdateOneRestaurantResolver();
       const args = new UpdateOneRestaurantArgs();
-      args.where = { id };
+      args.where = { userId };
       args.data = data;
       await updateOneRestaurantResolver.updateOneRestaurant(ctx, info, args);
       return true;
-    } catch (error) {
+    } catch (error:any) {
       console.log("error while updating restaurant data ", error);
-      return false;
+      return error.message;
     }
   }
 }

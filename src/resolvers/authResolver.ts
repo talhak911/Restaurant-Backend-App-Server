@@ -162,7 +162,7 @@ export class AuthResolver {
     @Arg("password") password: string,
     @Arg("newPassword") newPassword: string
   ): Promise<boolean> {
-    const userPayload = context.payload;
+    const userPayload = context.user;
     const user = await prisma.user.findUnique({
       where: { id: userPayload.id },
     });
@@ -224,7 +224,7 @@ export class AuthResolver {
   // @UseMiddleware(isAuth)
   // async getCurrentUser(@Ctx() context: any): Promise<User | null> {
   //   try {
-  //     const userPayload = context.payload;
+  //     const userPayload = context.user;
   //     const user = await prisma.user.findUnique({
   //       where: { id: userPayload.id },
   //     });
@@ -241,7 +241,7 @@ export class AuthResolver {
     @Info() info: GraphQLResolveInfo
   ): Promise<User | null> {
     try {
-      const userPayload = context.payload;
+      const userPayload = context.user;
       const findUniqueUserResolver = new FindUniqueUserResolver();
       const args = new FindUniqueUserArgs();
       args.where = { id: userPayload.id };
