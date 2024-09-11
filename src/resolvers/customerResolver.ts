@@ -1,23 +1,12 @@
 import {
   Arg,
   Ctx,
-  Info,
   Mutation,
   Resolver,
   UseMiddleware,
 } from "type-graphql";
 
-import prisma from "../../prisma/client";
 import { isAuth } from "../middleware/middleware";
-import {
-  CreateOneFoodArgs,
-  CreateOneFoodResolver,
-  FoodCreateWithoutRestaurantInput,
-  RestaurantUpdateInput,
-  UpdateOneRestaurantArgs,
-  UpdateOneRestaurantResolver,
-} from "../../prisma/generated/type-graphql";
-import { GraphQLResolveInfo } from "graphql";
 import { MyContext } from "../types/types";
 
 @Resolver()
@@ -26,13 +15,11 @@ export class CustomerResolver {
   @Mutation(() => Boolean || String)
   async addAddress(
     @Arg("address") address: string,
-    //   @Info() info: GraphQLResolveInfo,
-    //   @Arg("data") data: FoodCreateWithoutRestaurantInput,
     @Ctx() ctx: MyContext
   ): Promise<boolean | string> {
     try {
       const userId = ctx?.user?.id;
-      const customer = await prisma.customer.findUnique({
+      const customer = await ctx.prisma.customer.findUnique({
         where: { userId },
       });
 
@@ -40,11 +27,11 @@ export class CustomerResolver {
         throw new Error("Customer not found");
       }
 
-      await prisma.customer.update({
+      await ctx.prisma.customer.update({
         where: { userId },
         data: {
           address: {
-            push: address, // Append the new address to the array
+            push: address,
           },
         },
       });
@@ -55,6 +42,5 @@ export class CustomerResolver {
       return error.message;
     }
   }
-
   
 }
