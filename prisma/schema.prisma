@@ -66,15 +66,15 @@ model OrderItemCart {
   quantity   Int
   order      Order?   @relation(fields: [orderId], references: [id]) // Optional relation to Order
   orderId    Int? // Nullable orderId, allowing cart items to exist without an order
-  customer   Customer @relation(fields: [customerId], references: [id]) // Each cart item belongs to one customer
-  customerId Int
+  customer   Customer @relation(fields: [customerId], references: [userId]) // Each cart item belongs to one customer
+  customerId String
   totalPrice Float
 }
 
 model Order {
   id           Int             @id @default(autoincrement())
-  customer     Customer        @relation(fields: [customerId], references: [id])
-  customerId   Int
+  customer     Customer        @relation(fields: [customerId], references: [userId])
+  customerId   String
   restaurant   Restaurant      @relation(fields: [restaurantId], references: [id])
   restaurantId Int
   items        OrderItemCart[]
