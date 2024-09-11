@@ -48,35 +48,35 @@ model Restaurant {
 }
 
 model Food {
-  id           Int          @id @default(autoincrement())
+  id           String          @id @default(uuid())
   name         String
   description  String
   category     FoodCategory
   price        Float
-  restaurant   Restaurant   @relation(fields: [restaurantId], references: [id])
+  restaurant   Restaurant      @relation(fields: [restaurantId], references: [id])
   restaurantId Int
-  orders       OrderItem[]
+  orders       OrderItemCart[]
 }
 
-model OrderItem {
-  id         Int   @id @default(autoincrement())
-  food       Food  @relation(fields: [foodId], references: [id])
-  foodId     Int
+model OrderItemCart {
+  id         Int    @id @default(autoincrement())
+  food       Food   @relation(fields: [foodId], references: [id])
+  foodId     String
   quantity   Int
-  order      Order @relation(fields: [orderId], references: [id])
+  order      Order  @relation(fields: [orderId], references: [id])
   orderId    Int
   totalPrice Float
 }
 
 model Order {
-  id           Int         @id @default(autoincrement())
-  customer     Customer    @relation(fields: [customerId], references: [id])
+  id           Int             @id @default(autoincrement())
+  customer     Customer        @relation(fields: [customerId], references: [id])
   customerId   Int
-  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
+  restaurant   Restaurant      @relation(fields: [restaurantId], references: [id])
   restaurantId Int
-  items        OrderItem[]
-  status       OrderStatus @default(PENDING)
-  createdAt    DateTime    @default(now())
+  items        OrderItemCart[]
+  status       OrderStatus     @default(PENDING)
+  createdAt    DateTime        @default(now())
 }
 
 enum OrderStatus {
