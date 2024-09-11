@@ -29,11 +29,12 @@ model User {
 }
 
 model Customer {
-  id      Int      @id @default(autoincrement())
+  id      Int             @id @default(autoincrement())
   address String[]
-  user    User     @relation(fields: [userId], references: [id])
-  userId  String   @unique
+  user    User            @relation(fields: [userId], references: [id])
+  userId  String          @unique
   orders  Order[]
+  cart    OrderItemCart[]
 }
 
 model Restaurant {
@@ -55,16 +56,18 @@ model Food {
   price        Float
   restaurant   Restaurant      @relation(fields: [restaurantId], references: [id])
   restaurantId Int
-  orders       OrderItemCart[]
+  carts        OrderItemCart[]
 }
 
 model OrderItemCart {
-  id         Int    @id @default(autoincrement())
-  food       Food   @relation(fields: [foodId], references: [id])
+  id         Int      @id @default(autoincrement())
+  food       Food     @relation(fields: [foodId], references: [id])
   foodId     String
   quantity   Int
-  order      Order  @relation(fields: [orderId], references: [id])
-  orderId    Int
+  order      Order?   @relation(fields: [orderId], references: [id]) // Optional relation to Order
+  orderId    Int? // Nullable orderId, allowing cart items to exist without an order
+  customer   Customer @relation(fields: [customerId], references: [id]) // Each cart item belongs to one customer
+  customerId Int
   totalPrice Float
 }
 
