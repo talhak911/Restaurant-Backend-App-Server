@@ -9,6 +9,7 @@ import { CustomerResolver } from "./resolvers/customerResolver";
 import { MyContext } from "./types/types";
 import prisma from "../prisma/client";
 import { CartResolver } from "./resolvers/cartResolver";
+import { OrderResolver } from "./resolvers/orderResolver";
 
 const main = async () => {
   const schema = await buildSchema({
@@ -17,7 +18,8 @@ const main = async () => {
       AuthResolver,
       RestaurantResolver,
       CustomerResolver,
-      CartResolver
+      CartResolver,
+      OrderResolver
     ],
     validate: false,
   });

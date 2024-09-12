@@ -22,15 +22,15 @@ export class OrderResolver {
     }
 
     // Calculate total price
-    // const totalPrice = cartItems.reduce(
-    //   (sum, item) => sum + item.totalPrice,
-    //   0
-    // );
+    const totalPrice = cartItems.reduce(
+      (sum, item) => sum + item.totalPrice,
+      0
+    );
 
     // Create the order with foods array
     const order = await ctx.prisma.order.create({
       data: {
-        // totalPrice,
+        totalPrice,
         customer: { connect: { userId } },
         restaurant: {
           connect: {
@@ -38,7 +38,7 @@ export class OrderResolver {
           },
         },
         foods: {
-          connect: cartItems.map((item) => ({ id: item.foodId })),
+          food: cartItems.map((item) => (item)),
         },
         status: "PENDING",
       },

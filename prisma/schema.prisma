@@ -57,6 +57,7 @@ model Food {
   restaurant   Restaurant      @relation(fields: [restaurantId], references: [id])
   restaurantId Int
   carts        OrderItemCart[]
+  // orders       Order[]
 }
 
 model OrderItemCart {
@@ -77,13 +78,18 @@ model Order {
   customerId   String
   restaurant   Restaurant      @relation(fields: [restaurantId], references: [id])
   restaurantId Int
+  totalPrice   Float
+  foods        Json
   items        OrderItemCart[]
   status       OrderStatus     @default(PENDING)
   createdAt    DateTime        @default(now())
 }
 
+
+
 enum OrderStatus {
   PENDING
+  ACTIVE
   DELIVERED
   CANCELED
 }
