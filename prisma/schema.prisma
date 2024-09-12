@@ -75,17 +75,19 @@ model OrderItemCart {
 }
 
 model Order {
-  id           Int         @id @default(autoincrement())
-  customer     Customer    @relation(fields: [customerId], references: [userId])
-  customerId   String
-  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
-  restaurantId Int
-  totalPrice   Float
-  foods        Json
-  deliveryAddress String 
+  id              Int         @id @default(autoincrement())
+  customer        Customer    @relation(fields: [customerId], references: [userId])
+  customerId      String
+  restaurant      Restaurant  @relation(fields: [restaurantId], references: [id])
+  restaurantId    Int
+  totalPrice      Float
+  foods           Json
+  deliveryAddress String
   // items        OrderItemCart[]
-  status       OrderStatus @default(PENDING)
-  createdAt    DateTime    @default(now())
+  deliveryPerson  String? // Delivery person assigned to the order
+  deliveryTime    DateTime? // Time when the delivery was completed
+  status          OrderStatus @default(PENDING)
+  createdAt       DateTime    @default(now())
 }
 
 enum OrderStatus {
@@ -93,6 +95,8 @@ enum OrderStatus {
   ACTIVE
   DELIVERED
   CANCELED
+  ASSIGNED
+  OUT_FOR_DELIVERY
 }
 
 enum FoodCategory {
