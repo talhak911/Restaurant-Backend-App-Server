@@ -3,6 +3,7 @@ import {
   Ctx,
   Info,
   Mutation,
+  Query,
   Resolver,
   UseMiddleware,
 } from "type-graphql";
@@ -11,6 +12,7 @@ import prisma from "../../prisma/client";
 import {
   CreateOneOrderItemCartArgs,
   CreateOneOrderItemCartResolver,
+  OrderItemCart,
 } from "../../prisma/generated/type-graphql";
 import { GraphQLResolveInfo } from "graphql/type";
 import { isAuth } from "../middleware/middleware";
@@ -18,7 +20,6 @@ import { isAuth } from "../middleware/middleware";
 @Resolver()
 @UseMiddleware(isAuth)
 export class CartResolver {
-  // Add or Update Cart Item
   @Mutation(() => Boolean)
   async addToCart(
     @Ctx() ctx: MyContext,
@@ -27,7 +28,6 @@ export class CartResolver {
     @Arg("quantity") quantity: number
   ): Promise<boolean> {
     const customerId = ctx?.user?.id as string;
-    console.log("the user id is ", customerId);
 
     const orderItem = await prisma.orderItemCart.findFirst({
       where: { customerId, foodId },
@@ -68,7 +68,6 @@ export class CartResolver {
     @Info() info: GraphQLResolveInfo
   ): Promise<boolean> {
     const customerId = ctx?.user?.id as string;
-    console.log("the user id is ", customerId);
 
     const orderItem = await prisma.orderItemCart.findFirst({
       where: { customerId, foodId },
@@ -81,6 +80,20 @@ export class CartResolver {
     }
 
     return true;
+  }
+  @Query(() => [OrderItemCart])
+  async fetchCart(@Ctx() ctx: MyContext): Promise<OrderItemCart[]> {
+    const customerId = ctx?.user?.id as string;
+
+    const cart = await prisma.orderItemCart.findMany({
+      where: { customerId },
+    });
+
+    if (!cart) {
+      return [];
+    }
+
+    return cart;
   }
 
   private async calculatePrice(
