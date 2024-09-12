@@ -31,6 +31,7 @@ model User {
 model Customer {
   id      Int             @id @default(autoincrement())
   address String[]
+  picture String?
   user    User            @relation(fields: [userId], references: [id])
   userId  String          @unique
   orders  Order[]
@@ -54,6 +55,7 @@ model Food {
   description  String
   category     FoodCategory
   price        Float
+  picture      String?
   restaurant   Restaurant      @relation(fields: [restaurantId], references: [id])
   restaurantId Int
   carts        OrderItemCart[]
@@ -65,27 +67,26 @@ model OrderItemCart {
   food       Food     @relation(fields: [foodId], references: [id])
   foodId     String
   quantity   Int
-  order      Order?   @relation(fields: [orderId], references: [id]) // Optional relation to Order
-  orderId    Int? // Nullable orderId, allowing cart items to exist without an order
+  // order      Order?   @relation(fields: [orderId], references: [id]) // Optional relation to Order
+  // orderId    Int? // Nullable orderId, allowing cart items to exist without an order
   customer   Customer @relation(fields: [customerId], references: [userId]) // Each cart item belongs to one customer
   customerId String
   totalPrice Float
 }
 
 model Order {
-  id           Int             @id @default(autoincrement())
-  customer     Customer        @relation(fields: [customerId], references: [userId])
+  id           Int         @id @default(autoincrement())
+  customer     Customer    @relation(fields: [customerId], references: [userId])
   customerId   String
-  restaurant   Restaurant      @relation(fields: [restaurantId], references: [id])
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
   restaurantId Int
   totalPrice   Float
   foods        Json
-  items        OrderItemCart[]
-  status       OrderStatus     @default(PENDING)
-  createdAt    DateTime        @default(now())
+  deliveryAddress String 
+  // items        OrderItemCart[]
+  status       OrderStatus @default(PENDING)
+  createdAt    DateTime    @default(now())
 }
-
-
 
 enum OrderStatus {
   PENDING

@@ -1,17 +1,36 @@
 import prisma from "../../prisma/client";
-import { Ctx, Mutation, Resolver, UseMiddleware } from "type-graphql";
+import {
+  Arg,
+  Ctx,
+  Info,
+  Mutation,
+  Query,
+  Resolver,
+  UseMiddleware,
+} from "type-graphql";
 import { isAuth } from "../middleware/middleware";
-import { Order } from "../../prisma/generated/type-graphql";
+import {
+  EnumOrderStatusFilter,
+  FindManyOrderArgs,
+  FindManyOrderResolver,
+  Order,
+  OrderStatus,
+} from "../../prisma/generated/type-graphql";
 import { MyContext } from "../types/types";
+import { GraphQLResolveInfo } from "graphql/type";
 
 @Resolver()
 @UseMiddleware(isAuth)
 export class OrderResolver {
   @Mutation(() => Order)
-  async placeOrder(@Ctx() ctx: MyContext): Promise<Order> {
+  async placeOrder(
+    @Ctx() ctx: MyContext,
+    @Arg("deliveryAddress") deliveryAddress: string
+  ): Promise<Order> {
     const userId = ctx.user?.id as string;
-
-    // Fetch all cart items for the current customer
+    if (!deliveryAddress) {
+      throw new Error("Delivery address is required");
+    }
     const cartItems = await ctx.prisma.orderItemCart.findMany({
       where: { customerId: userId },
       include: { food: true },
@@ -21,7 +40,6 @@ export class OrderResolver {
       throw new Error("Cart is empty.");
     }
 
-    // Calculate total price
     const totalPrice = cartItems.reduce(
       (sum, item) => sum + item.totalPrice,
       0
@@ -30,6 +48,7 @@ export class OrderResolver {
     // Create the order with foods array
     const order = await ctx.prisma.order.create({
       data: {
+        deliveryAddress,
         totalPrice,
         customer: { connect: { userId } },
         restaurant: {
@@ -37,9 +56,8 @@ export class OrderResolver {
             id: await this.getRestaurantIdFromFood(cartItems[0].foodId),
           },
         },
-        foods: {
-          food: cartItems.map((item) => (item)),
-        },
+        foods: cartItems.map((item) => item),
+
         status: "PENDING",
       },
     });
@@ -51,18 +69,23 @@ export class OrderResolver {
     return order;
   }
 
+  @Query(() => [Order])
+  async fetchOrders(
+    @Ctx() ctx: MyContext,
+    @Arg("status") status: OrderStatus,
+    @Info() info: GraphQLResolveInfo
+  ): Promise<Order[]> {
+    console.log("user in context ",ctx.user)
+    const userId = ctx.user?.id as string;
+    const findManyOrderResolver = new FindManyOrderResolver();
+    const args = new FindManyOrderArgs();
+    args.where = { status: { equals: status }, customerId: { equals: userId } };
+    const orders = await findManyOrderResolver.orders(ctx, info, args);
 
 
-  
-  // @Mutation(() => Order)
-  // async fetchOrders(@Ctx() ctx: MyContext): Promise<Order> {
-  //   const userId = ctx.user?.id as string;
-
-  //   return order;
-  // }
-
-
-
+    console.log("orders are ", orders)
+    return orders;
+  }
 
   private async getRestaurantIdFromFood(foodId: string): Promise<number> {
     const food = await prisma.food.findUnique({ where: { id: foodId } });
