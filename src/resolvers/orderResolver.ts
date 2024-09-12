@@ -10,7 +10,6 @@ import {
 } from "type-graphql";
 import { isAuth } from "../middleware/middleware";
 import {
-  EnumOrderStatusFilter,
   FindManyOrderArgs,
   FindManyOrderResolver,
   Order,
@@ -45,7 +44,6 @@ export class OrderResolver {
       0
     );
 
-    // Create the order with foods array
     const order = await ctx.prisma.order.create({
       data: {
         deliveryAddress,
@@ -72,18 +70,16 @@ export class OrderResolver {
   @Query(() => [Order])
   async fetchOrders(
     @Ctx() ctx: MyContext,
-    @Arg("status") status: OrderStatus,
+    @Arg("status",{nullable:true}) status: OrderStatus,
     @Info() info: GraphQLResolveInfo
   ): Promise<Order[]> {
-    console.log("user in context ",ctx.user)
     const userId = ctx.user?.id as string;
     const findManyOrderResolver = new FindManyOrderResolver();
     const args = new FindManyOrderArgs();
-    args.where = { status: { equals: status }, customerId: { equals: userId } };
+if(status){
+  args.where = { status: { equals: status }, customerId: { equals: userId } };
+}
     const orders = await findManyOrderResolver.orders(ctx, info, args);
-
-
-    console.log("orders are ", orders)
     return orders;
   }
 
