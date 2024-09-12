@@ -8,31 +8,23 @@ import {
   UseMiddleware,
 } from "type-graphql";
 import bcrypt from "bcrypt";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { generateOTP, isEmailValid } from "../utils/utils";
-// import prisma from "../../prisma/client";
 import { isAuth } from "../middleware/middleware";
 import {
   CreateOneCustomerArgs,
   CreateOneCustomerResolver,
   CreateOneRestaurantArgs,
   CreateOneRestaurantResolver,
-  CustomerCreateInput,
-  CustomerCreateWithoutUserInput,
   FindUniqueUserArgs,
   FindUniqueUserResolver,
-  RestaurantCreateInput,
-  RestaurantCreateWithoutUserInput,
   User,
   UserCreateInput,
 } from "../../prisma/generated/type-graphql";
 import { sendOTPEmail } from "../utils/mailer";
 import { GraphQLResolveInfo } from "graphql/type";
 import { MyContext } from "../types/types";
-interface JwtPayloadWithId extends JwtPayload {
-  id: string;
-  role: string;
-}
+
 @Resolver()
 export class AuthResolver {
   @Mutation(() => User)
@@ -40,8 +32,6 @@ export class AuthResolver {
     @Ctx() ctx: MyContext,
     @Info() info: GraphQLResolveInfo,
     @Arg("data") data: UserCreateInput
-    // @Arg("customer", { nullable: true }) customer?: CustomerCreateWithoutUserInput,
-    // @Arg("restaurant", { nullable: true }) restaurant?: RestaurantCreateWithoutUserInput
   ): Promise<User> {
     const { name, email, password, role } = data;
     if (!isEmailValid(email)) {
@@ -51,14 +41,6 @@ export class AuthResolver {
     if (existingUser) {
       throw new Error("User already exists");
     }
-
-    // if (role === "CUSTOMER" && !customer) {
-    //   throw new Error("Please provide customer information");
-    // }
-    // if (role === "RESTAURANT" && !restaurant) {
-    //   console.log("REs" , restaurant)
-    //   throw new Error("Please provide restaurant information");
-    // }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const otp = generateOTP();
@@ -73,7 +55,7 @@ export class AuthResolver {
         verificationOtpExpiry: new Date(Date.now() + 10 * 60 * 1000),
       },
     });
-    // Depending on the user's role, create a Customer or Restaurant
+
     if (role === "CUSTOMER") {
       const createCustomerResolver = new CreateOneCustomerResolver();
       const customerArgs = new CreateOneCustomerArgs();
@@ -223,20 +205,6 @@ export class AuthResolver {
 
     return true;
   }
-
-  // @Query(() => User)
-  // @UseMiddleware(isAuth)
-  // async getCurrentUser(@Ctx() context: any): Promise<User | null> {
-  //   try {
-  //     const userPayload = context.user;
-  //     const user = await prisma.user.findUnique({
-  //       where: { id: userPayload.id },
-  //     });
-  //     return user;
-  //   } catch (error: any) {
-  //     throw new Error(error.message);
-  //   }
-  // }
 
   @Query(() => User, { nullable: true })
   @UseMiddleware(isAuth)
