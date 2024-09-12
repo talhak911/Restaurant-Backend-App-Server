@@ -28,28 +28,12 @@ export class CartResolver {
   ): Promise<boolean> {
     const customerId = ctx?.user?.id as string;
     console.log("the user id is ", customerId);
-    // assuming the user's ID is in the token
-    // const restaurantId = await this.getRestaurantIdFromFood(foodId);
 
-    // Find or create an Order with PENDING status for this customer
-    // let order = await ctx.prisma.order.findFirst({
-    //   where: { customerId, status: 'PENDING' },
-    // });
-
-    // if (!order && customerId) {
-    //   // Create new order if it doesn't exist
-    //   order = await prisma.order.create({
-    //     data: { customerId, restaurantId, status: 'PENDING' },
-    //   });
-    // }
-
-    // Check if the food item already exists in the cart (order items)
     const orderItem = await prisma.orderItemCart.findFirst({
       where: { customerId, foodId },
     });
 
     if (orderItem) {
-      // Update quantity if item exists
       await prisma.orderItemCart.update({
         where: { id: orderItem.id },
         data: {
@@ -60,7 +44,6 @@ export class CartResolver {
         },
       });
     } else {
-      // Add new item to cart
       const createOneOrderItemCartResolver =
         new CreateOneOrderItemCartResolver();
       const args = new CreateOneOrderItemCartArgs();
@@ -75,16 +58,6 @@ export class CartResolver {
         info,
         args
       );
-
-      // await prisma.orderItemCart.create({
-      //   data: {
-      //     customerId,
-
-      //     foodId,
-      //     quantity,
-      //     totalPrice: await this.calculatePrice(foodId, quantity),
-      //   },
-      // });
     }
     return true;
   }
@@ -108,11 +81,6 @@ export class CartResolver {
     }
 
     return true;
-  }
-
-  private async getRestaurantIdFromFood(foodId: string): Promise<number> {
-    const food = await prisma.food.findUnique({ where: { id: foodId } });
-    return food?.restaurantId ?? 0;
   }
 
   private async calculatePrice(
