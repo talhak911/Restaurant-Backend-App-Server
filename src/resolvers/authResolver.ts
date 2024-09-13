@@ -33,7 +33,7 @@ export class AuthResolver {
     @Info() info: GraphQLResolveInfo,
     @Arg("data") data: UserCreateInput
   ): Promise<User> {
-    const { name, email, password, role } = data;
+    const { name, email, password, role,dateOfBirth,phone} = data;
     if (!isEmailValid(email)) {
       throw new Error("Email is not valid");
     }
@@ -47,6 +47,8 @@ export class AuthResolver {
     await sendOTPEmail(email, otp, "Verify");
     const user = await ctx.prisma.user.create({
       data: {
+        dateOfBirth,
+        phone,
         name: name,
         email: email,
         password: hashedPassword,
