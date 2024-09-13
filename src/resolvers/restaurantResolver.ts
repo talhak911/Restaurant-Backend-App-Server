@@ -100,6 +100,19 @@ export class RestaurantResolver {
       return error.message;
     }
   }
+  @Query(() => Food)
+  async fetchFood(
+    @Arg("foodId") foodId: string,
+    @Ctx() ctx: MyContext
+  ): Promise<Food | null> {
+    try {
+      const food = await ctx.prisma.food.findUnique({ where: { id: foodId } });
+      return food;
+    } catch (error: any) {
+      console.log(error);
+      return error.message;
+    }
+  }
 
   @Mutation(() => String || Boolean)
   @UseMiddleware(isAuth)
@@ -114,11 +127,7 @@ export class RestaurantResolver {
       const args = new UpdateOneRestaurantArgs();
       args.where = { userId };
       args.data = data;
-      const res = await updateOneRestaurantResolver.updateOneRestaurant(
-        ctx,
-        info,
-        args
-      );
+      await updateOneRestaurantResolver.updateOneRestaurant(ctx, info, args);
       return true;
     } catch (error: any) {
       console.log("error while updating restaurant data ", error);
