@@ -86,14 +86,14 @@ export class OrderResolver {
     return orders;
   }
 
-  @Mutation(() => String ||Boolean)
+  @Mutation(() => String || Boolean)
   async cancelOrder(
     @Ctx() ctx: MyContext,
     @Arg("orderId") orderId: number
   ): Promise<string | boolean> {
     try {
       const userId = ctx.user?.id as string;
-      const order = await ctx.prisma.order.findUnique({
+      const order = await ctx.prisma.order.findUniqueOrThrow({
         where: { id: orderId },
       });
       if (order?.customerId !== userId) {
@@ -114,8 +114,7 @@ export class OrderResolver {
 
       return true;
     } catch (error: any) {
-      console.log("error in cancel order ", error);
-      return error.message;
+      throw new Error("error in cancel order " + error.message);
     }
   }
   private async getRestaurantIdFromFood(foodId: string): Promise<number> {
