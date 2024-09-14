@@ -45,8 +45,9 @@ export class CustomerResolver {
     }
   }
   @Mutation(() => Boolean || String)
-  async updateUser(
-    @Arg("data") data: UserUpdateWithoutRestaurantInput,
+  async updateCustomer(
+    @Arg("name", { nullable: true }) name: string,
+    @Arg("phone", { nullable: true }) phone: number,
     @Info() info: GraphQLResolveInfo,
     @Ctx() ctx: MyContext
   ): Promise<boolean | string> {
@@ -58,12 +59,20 @@ export class CustomerResolver {
       const updateOneUserResolver = new UpdateOneUserResolver();
       const args = new UpdateOneUserArgs();
       args.where = { id: userId };
-      args.data = { ...data };
-      await updateOneUserResolver.updateOneUser(ctx, info, args);
+      args.data = {};
 
+      if (name) {
+        args.data.name = { set: name };
+      }
+
+      if (phone) {
+        args.data.phone = { set: phone };
+      }
+
+      await updateOneUserResolver.updateOneUser(ctx, info, args);
       return true;
     } catch (error: any) {
-      throw new Error("Error while adding address " + error.message);
+      throw new Error("Error while updating customer " + error.message);
     }
   }
 }
