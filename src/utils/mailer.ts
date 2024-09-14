@@ -8,17 +8,25 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendOTPEmail = async (to: string, otp: string,type:"Verify"|"Reset") => {
-try {
+export const sendOTPEmail = async (
+  to: string,
+  otp: string,
+  type: "Verify" | "Reset"
+) => {
+  try {
     const mailOptions = {
-        from: process.env.GMAIL,
-        to,
-        subject: `${type==="Verify"?"Account":"Reset Password"} Confirmation OTP`,
-        text: `Your OTP for ${type==="Verify"?"account confirmation":"reset password"} is: ${otp}`,
-      };
-    
-      await transporter.sendMail(mailOptions);
-} catch (error:any) {
-    throw new Error(error.message)
-}
+      from: process.env.GMAIL,
+      to,
+      subject: `${
+        type === "Verify" ? "Account" : "Reset Password"
+      } Confirmation OTP for Restaurant Management App`,
+      text: `Your OTP for ${
+        type === "Verify" ? "account confirmation" : "reset password"
+      } is: ${otp}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+  } catch (error: any) {
+    throw new Error("error in sending mail " + error.message);
+  }
 };
