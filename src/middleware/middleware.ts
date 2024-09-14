@@ -1,6 +1,5 @@
 import { MiddlewareFn } from "type-graphql";
 import jwt from "jsonwebtoken";
-import { YogaInitialContext } from "graphql-yoga";
 import { MyContext } from "../types/types";
 
 export const isAuth: MiddlewareFn<MyContext> = async (
