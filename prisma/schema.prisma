@@ -21,12 +21,19 @@ model User {
   /// @TypeGraphQL.omit(output: true)
   password              String
   role                  Role
+  /// @TypeGraphQL.omit(input: true)
   verificationOtp       String?
+    /// @TypeGraphQL.omit(input: true)
   verificationOtpExpiry DateTime?
+    /// @TypeGraphQL.omit(input: true)
   verification          Boolean     @default(false)
+    /// @TypeGraphQL.omit(input: true)
   resetPassOtp          String?
+    /// @TypeGraphQL.omit(input: true)
   resetPassOtpExpiry    DateTime?
+    /// @TypeGraphQL.omit(input: true)
   customer              Customer?
+    /// @TypeGraphQL.omit(input: true)
   restaurant            Restaurant?
 }
 
