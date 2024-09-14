@@ -31,21 +31,19 @@ model User {
 }
 
 model Customer {
-  id      Int             @id @default(autoincrement())
   address String[]
   picture String?
-  user    User            @relation(fields: [userId], references: [id])
-  userId  String          @unique
+  user    User            @relation(fields: [id], references: [id])
+  id  String          @id 
   orders  Order[]
   cart    OrderItemCart[]
 }
 
 model Restaurant {
-  id             Int     @id @default(autoincrement())
+  id             String  @id @unique
+  user           User    @relation(fields: [id], references: [id])
   name           String?
   location       String?
-  user           User    @relation(fields: [userId], references: [id])
-  userId         String  @unique
   operatingHours String?
   menu           Food[]
   orders         Order[]
@@ -59,7 +57,7 @@ model Food {
   price        Float
   picture      String?
   restaurant   Restaurant      @relation(fields: [restaurantId], references: [id])
-  restaurantId Int
+  restaurantId String
   carts        OrderItemCart[]
 }
 
@@ -68,17 +66,17 @@ model OrderItemCart {
   food       Food     @relation(fields: [foodId], references: [id])
   foodId     String
   quantity   Int
-  customer   Customer @relation(fields: [customerId], references: [userId])
+  customer   Customer @relation(fields: [customerId], references: [id])
   customerId String
   totalPrice Float
 }
 
 model Order {
   id              Int         @id @default(autoincrement())
-  customer        Customer    @relation(fields: [customerId], references: [userId])
+  customer        Customer    @relation(fields: [customerId], references: [id])
   customerId      String
   restaurant      Restaurant  @relation(fields: [restaurantId], references: [id])
-  restaurantId    Int
+  restaurantId    String
   totalPrice      Float
   foods           Json
   deliveryAddress String

@@ -48,7 +48,7 @@ export class OrderResolver {
       data: {
         deliveryAddress,
         totalPrice,
-        customer: { connect: { userId } },
+        customer: { connect: { id:userId } },
         restaurant: {
           connect: {
             id: await this.getRestaurantIdFromFood(cartItems[0].foodId),
@@ -73,17 +73,26 @@ export class OrderResolver {
     @Arg("status", { nullable: true }) status: OrderStatus,
     @Info() info: GraphQLResolveInfo
   ): Promise<Order[]> {
-    const userId = ctx.user?.id as string;
-    const findManyOrderResolver = new FindManyOrderResolver();
-    const args = new FindManyOrderArgs();
-    if (status) {
-      args.where = {
-        status: { equals: status },
-        customerId: { equals: userId },
-      };
-    }
-    const orders = await findManyOrderResolver.orders(ctx, info, args);
-    return orders;
+try {
+  const userId = ctx.user?.id as string;
+  const findManyOrderResolver = new FindManyOrderResolver();
+  const args = new FindManyOrderArgs();
+  args.where = {
+    OR: [
+      { customerId: { equals: userId } }, 
+      { restaurantId: { equals: userId } } 
+    ],
+  };
+  if (status) {
+    args.where = {
+      status: { equals: status },
+    };
+  }
+  const orders = await findManyOrderResolver.orders(ctx, info, args);
+  return orders;
+} catch (error:any) {
+ throw new Error("error while fetching order " + error.message) 
+}
   }
 
   @Mutation(() => String || Boolean)
@@ -117,8 +126,8 @@ export class OrderResolver {
       throw new Error("error in cancel order " + error.message);
     }
   }
-  private async getRestaurantIdFromFood(foodId: string): Promise<number> {
+  private async getRestaurantIdFromFood(foodId: string): Promise<string> {
     const food = await prisma.food.findUnique({ where: { id: foodId } });
-    return food?.restaurantId ?? 0;
+    return food?.restaurantId ?? "";
   }
 }

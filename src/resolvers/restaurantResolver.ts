@@ -36,16 +36,13 @@ export class RestaurantResolver {
   ): Promise<boolean | string> {
     try {
       const userId = ctx?.user?.id;
-      const restaurant = await ctx.prisma.restaurant.findUnique({
-        where: { userId },
+     await ctx.prisma.restaurant.findUniqueOrThrow({
+        where: {id: userId },
       });
-      if (!restaurant) {
-        throw new Error("Something went wrong, no restaurant found");
-      }
 
       const createoneFoodResolver = new CreateOneFoodResolver();
       const args = new CreateOneFoodArgs();
-      args.data = { ...data, restaurant: { connect: { userId } } };
+      args.data = { ...data, restaurant: { connect: { id:userId } } };
       await createoneFoodResolver.createOneFood(ctx, info, args);
       return true;
     } catch (error: any) {
@@ -63,7 +60,7 @@ export class RestaurantResolver {
     try {
       const userId = ctx?.user?.id;
       await ctx.prisma.food.findUniqueOrThrow({
-        where: { id: foodId, restaurant: { userId } },
+        where: { id: foodId, restaurant: { id:userId } },
       });
 
       const updateOneFoodResolver = new UpdateOneFoodResolver();
@@ -90,7 +87,7 @@ export class RestaurantResolver {
         where: { id: foodId },
         include: { restaurant: true },
       });
-      if (food.restaurant.userId !== userId) {
+      if (food.restaurant.id !== userId) {
         throw new Error("Not Authorized");
       }
       await ctx.prisma.food.delete({
@@ -143,9 +140,13 @@ export class RestaurantResolver {
   ): Promise<boolean | string> {
     try {
       const userId = ctx?.user?.id;
+       await ctx.prisma.restaurant.findUniqueOrThrow({
+        where: { id:userId},
+      });
+  
       const updateOneRestaurantResolver = new UpdateOneRestaurantResolver();
       const args = new UpdateOneRestaurantArgs();
-      args.where = { userId };
+      args.where = {id: userId };
       args.data = data;
       await updateOneRestaurantResolver.updateOneRestaurant(ctx, info, args);
       return true;
