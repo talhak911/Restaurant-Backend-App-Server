@@ -33,52 +33,63 @@ export class AuthResolver {
     @Info() info: GraphQLResolveInfo,
     @Arg("data") data: UserCreateInput
   ): Promise<User> {
-    const { name, email, password, role,dateOfBirth,phone} = data;
-    if (!isEmailValid(email)) {
-      throw new Error("Email is not valid");
-    }
-    const existingUser = await ctx.prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
-      throw new Error("User already exists");
-    }
+    try {
+      const { name, email, password, role, dateOfBirth, phone } = data;
+      if (!isEmailValid(email)) {
+        throw new Error("Email is not valid");
+      }
+      const existingUser = await ctx.prisma.user.findUnique({
+        where: { email },
+      });
+      if (existingUser) {
+        throw new Error("User already exists");
+      }
+      if (new Date(dateOfBirth).getTime() > new Date().getTime()) {
+        throw new Error("Date of birth should not be in the future");
+      }
+      if (password.length < 8) {
+        throw new Error("Password should be minimum 8 characters long");
+      }
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const otp = generateOTP();
+      await sendOTPEmail(email, otp, "Verify");
+      const user = await ctx.prisma.user.create({
+        data: {
+          dateOfBirth,
+          phone,
+          name: name,
+          email: email,
+          password: hashedPassword,
+          role: role,
+          verificationOtp: otp,
+          verificationOtpExpiry: new Date(Date.now() + 10 * 60 * 1000),
+        },
+      });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const otp = generateOTP();
-    await sendOTPEmail(email, otp, "Verify");
-    const user = await ctx.prisma.user.create({
-      data: {
-        dateOfBirth,
-        phone,
-        name: name,
-        email: email,
-        password: hashedPassword,
-        role: role,
-        verificationOtp: otp,
-        verificationOtpExpiry: new Date(Date.now() + 10 * 60 * 1000),
-      },
-    });
+      if (role === "CUSTOMER") {
+        const createCustomerResolver = new CreateOneCustomerResolver();
+        const customerArgs = new CreateOneCustomerArgs();
+        customerArgs.data = {
+          user: { connect: { id: user.id } },
+        };
+        await createCustomerResolver.createOneCustomer(ctx, info, customerArgs);
+      } else if (role === "RESTAURANT") {
+        const createRestaurantResolver = new CreateOneRestaurantResolver();
+        const restaurantArgs = new CreateOneRestaurantArgs();
+        restaurantArgs.data = {
+          user: { connect: { id: user.id } },
+        };
 
-    if (role === "CUSTOMER") {
-      const createCustomerResolver = new CreateOneCustomerResolver();
-      const customerArgs = new CreateOneCustomerArgs();
-      customerArgs.data = {
-        user: { connect: { id: user.id } },
-      };
-      await createCustomerResolver.createOneCustomer(ctx, info, customerArgs);
-    } else if (role === "RESTAURANT") {
-      const createRestaurantResolver = new CreateOneRestaurantResolver();
-      const restaurantArgs = new CreateOneRestaurantArgs();
-      restaurantArgs.data = {
-        user: { connect: { id: user.id } },
-      };
-
-      await createRestaurantResolver.createOneRestaurant(
-        ctx,
-        info,
-        restaurantArgs
-      );
+        await createRestaurantResolver.createOneRestaurant(
+          ctx,
+          info,
+          restaurantArgs
+        );
+      }
+      return user;
+    } catch (error: any) {
+      throw new Error(error.message);
     }
-    return user;
   }
 
   @Mutation(() => Boolean)
