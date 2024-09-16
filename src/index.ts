@@ -3,7 +3,6 @@ import { createServer } from "node:http";
 import { createYoga} from "graphql-yoga";
 import { buildSchema } from "type-graphql";
 import { AuthResolver } from "./resolvers/authResolver";
-import { resolvers } from "../prisma/generated/type-graphql";
 import { RestaurantResolver } from "./resolvers/restaurantResolver";
 import { CustomerResolver } from "./resolvers/customerResolver";
 import { MyContext } from "./types/types";
@@ -15,7 +14,6 @@ import { DeliveryResolver } from "./resolvers/deliveryResolver";
 const main = async () => {
   const schema = await buildSchema({
     resolvers: [
-      ...resolvers,
       AuthResolver,
       RestaurantResolver,
       CustomerResolver,

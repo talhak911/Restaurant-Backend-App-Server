@@ -1,7 +1,6 @@
 import { Arg, Ctx, Mutation, Resolver, UseMiddleware } from "type-graphql";
 import { MyContext } from "../types/types";
 import { Order, OrderStatus } from "../../prisma/generated/type-graphql";
-
 import { isAuth } from "../middleware/middleware";
 
 @Resolver()

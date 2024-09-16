@@ -12,7 +12,6 @@ import { MyContext } from "../types/types";
 import {
   UpdateOneUserArgs,
   UpdateOneUserResolver,
-  UserUpdateWithoutRestaurantInput,
 } from "../../prisma/generated/type-graphql";
 import { GraphQLResolveInfo } from "graphql/type";
 

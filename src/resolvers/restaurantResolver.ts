@@ -36,13 +36,13 @@ export class RestaurantResolver {
   ): Promise<boolean | string> {
     try {
       const userId = ctx?.user?.id;
-     await ctx.prisma.restaurant.findUniqueOrThrow({
-        where: {id: userId },
+      await ctx.prisma.restaurant.findUniqueOrThrow({
+        where: { id: userId },
       });
 
       const createoneFoodResolver = new CreateOneFoodResolver();
       const args = new CreateOneFoodArgs();
-      args.data = { ...data, restaurant: { connect: { id:userId } } };
+      args.data = { ...data, restaurant: { connect: { id: userId } } };
       await createoneFoodResolver.createOneFood(ctx, info, args);
       return true;
     } catch (error: any) {
@@ -60,7 +60,7 @@ export class RestaurantResolver {
     try {
       const userId = ctx?.user?.id;
       await ctx.prisma.food.findUniqueOrThrow({
-        where: { id: foodId, restaurant: { id:userId } },
+        where: { id: foodId, restaurant: { id: userId } },
       });
 
       const updateOneFoodResolver = new UpdateOneFoodResolver();
@@ -140,13 +140,13 @@ export class RestaurantResolver {
   ): Promise<boolean | string> {
     try {
       const userId = ctx?.user?.id;
-       await ctx.prisma.restaurant.findUniqueOrThrow({
-        where: { id:userId},
+      await ctx.prisma.restaurant.findUniqueOrThrow({
+        where: { id: userId },
       });
-  
+
       const updateOneRestaurantResolver = new UpdateOneRestaurantResolver();
       const args = new UpdateOneRestaurantArgs();
-      args.where = {id: userId };
+      args.where = { id: userId };
       args.data = data;
       await updateOneRestaurantResolver.updateOneRestaurant(ctx, info, args);
       return true;

@@ -27,11 +27,11 @@ export class CartResolver {
     @Info() info: GraphQLResolveInfo,
     @Arg("quantity") quantity: number
   ): Promise<boolean> {
-    if(ctx.user?.role==="RESTAURANT"){
-      throw new Error("make customer account to place order")
+    if (ctx.user?.role === "RESTAURANT") {
+      throw new Error("make customer account to place order");
     }
     const customerId = ctx?.user?.id as string;
-    await prisma.food.findUniqueOrThrow({where:{id:foodId}})
+    await prisma.food.findUniqueOrThrow({ where: { id: foodId } });
     const orderItem = await prisma.orderItemCart.findFirst({
       where: { customerId, foodId },
     });

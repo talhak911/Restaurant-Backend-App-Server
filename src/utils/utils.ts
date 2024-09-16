@@ -5,6 +5,6 @@ export const isEmailValid = (email: string) => {
   return emailRegex.test(email);
 };
 
-export const generateOTP = (length = 6) => {
+export const generateOTP = () => {
   return crypto.randomInt(100000, 999999).toString();
 };

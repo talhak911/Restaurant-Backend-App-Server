@@ -48,7 +48,7 @@ export class OrderResolver {
       data: {
         deliveryAddress,
         totalPrice,
-        customer: { connect: { id:userId } },
+        customer: { connect: { id: userId } },
         restaurant: {
           connect: {
             id: await this.getRestaurantIdFromFood(cartItems[0].foodId),
@@ -73,26 +73,26 @@ export class OrderResolver {
     @Arg("status", { nullable: true }) status: OrderStatus,
     @Info() info: GraphQLResolveInfo
   ): Promise<Order[]> {
-try {
-  const userId = ctx.user?.id as string;
-  const findManyOrderResolver = new FindManyOrderResolver();
-  const args = new FindManyOrderArgs();
-  args.where = {
-    OR: [
-      { customerId: { equals: userId } }, 
-      { restaurantId: { equals: userId } } 
-    ],
-  };
-  if (status) {
-    args.where = {
-      status: { equals: status },
-    };
-  }
-  const orders = await findManyOrderResolver.orders(ctx, info, args);
-  return orders;
-} catch (error:any) {
- throw new Error("error while fetching order " + error.message) 
-}
+    try {
+      const userId = ctx.user?.id as string;
+      const findManyOrderResolver = new FindManyOrderResolver();
+      const args = new FindManyOrderArgs();
+      args.where = {
+        OR: [
+          { customerId: { equals: userId } },
+          { restaurantId: { equals: userId } },
+        ],
+      };
+      if (status) {
+        args.where = {
+          status: { equals: status },
+        };
+      }
+      const orders = await findManyOrderResolver.orders(ctx, info, args);
+      return orders;
+    } catch (error: any) {
+      throw new Error("error while fetching order " + error.message);
+    }
   }
 
   @Mutation(() => String || Boolean)

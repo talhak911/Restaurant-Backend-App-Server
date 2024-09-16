@@ -2,10 +2,7 @@ import { MiddlewareFn } from "type-graphql";
 import jwt from "jsonwebtoken";
 import { MyContext } from "../types/types";
 
-export const isAuth: MiddlewareFn<MyContext> = async (
-  { context },
-  next
-) => {
+export const isAuth: MiddlewareFn<MyContext> = async ({ context }, next) => {
   const token = context?.token;
   if (!token) {
     throw new Error("Authorization header is  missing");
