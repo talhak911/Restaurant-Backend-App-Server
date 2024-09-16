@@ -82,7 +82,6 @@ export class RestaurantResolver {
   ): Promise<boolean | string> {
     try {
       const userId = ctx?.user?.id;
-      console.log("user id is in rmove food, ", userId);
       const food = await ctx.prisma.food.findUniqueOrThrow({
         where: { id: foodId },
         include: { restaurant: true },
