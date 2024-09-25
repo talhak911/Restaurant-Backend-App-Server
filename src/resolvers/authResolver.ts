@@ -34,6 +34,7 @@ export class AuthResolver {
     @Arg("data") data: UserCreateInput
   ): Promise<User> {
     try {
+      console.log(data)
       const { name, email, password, role, dateOfBirth, phone } = data;
       if (!isEmailValid(email)) {
         throw new Error("Email is not valid");
@@ -88,6 +89,7 @@ export class AuthResolver {
       }
       return user;
     } catch (error: any) {
+      console.log(error)
       throw new Error(error.message);
     }
   }
@@ -237,7 +239,7 @@ export class AuthResolver {
     }
   }
 
-  @Query(() => String)
+  @Mutation(() => String)
   async signIn(
     @Ctx() ctx: MyContext,
     @Arg("email") email: string,
