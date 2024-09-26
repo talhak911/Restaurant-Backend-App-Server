@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@graphql-yoga/plugin-jwt": "^3.1.0",
-    "@prisma/client": "^5.19.1",
+    "@prisma/client": "^5.20.0",
     "@types/graphql-fields": "^1.3.9",
     "bcrypt": "^5.1.1",
     "graphql": "^16.9.0",
@@ -20,6 +20,7 @@
     "graphql-yoga": "^5.7.0",
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^6.9.15",
+    "prisma": "^5.20.0",
     "reflect-metadata": "^0.2.2",
     "tslib": "^2.7.0",
     "type-graphql": "^2.0.0-rc.2",

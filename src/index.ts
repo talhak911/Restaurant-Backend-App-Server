@@ -10,10 +10,12 @@ import prisma from "../prisma/client";
 import { CartResolver } from "./resolvers/cartResolver";
 import { OrderResolver } from "./resolvers/orderResolver";
 import { DeliveryResolver } from "./resolvers/deliveryResolver";
+import {resolvers} from '../prisma/generated/type-graphql'
 
 const main = async () => {
   const schema = await buildSchema({
     resolvers: [
+      ...resolvers,
       AuthResolver,
       RestaurantResolver,
       CustomerResolver,
