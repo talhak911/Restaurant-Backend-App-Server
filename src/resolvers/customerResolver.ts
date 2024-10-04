@@ -46,7 +46,7 @@ export class CustomerResolver {
   @Mutation(() => Boolean || String)
   async updateCustomer(
     @Arg("name", { nullable: true }) name: string,
-    @Arg("phone", { nullable: true }) phone: number,
+    @Arg("phone", { nullable: true }) phone: string,
     @Info() info: GraphQLResolveInfo,
     @Ctx() ctx: MyContext
   ): Promise<boolean | string> {
