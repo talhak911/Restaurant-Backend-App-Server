@@ -21,7 +21,7 @@ import { isAuth } from "../middleware/middleware";
 @UseMiddleware(isAuth)
 export class CartResolver {
   @Mutation(() => Boolean)
-  async addToCart(
+  async updateCart(
     @Ctx() ctx: MyContext,
     @Arg("foodId") foodId: string,
     @Info() info: GraphQLResolveInfo,
@@ -37,15 +37,23 @@ export class CartResolver {
     });
 
     if (orderItem) {
+      const newQuantity = orderItem.quantity + quantity;
+
+      if (newQuantity <= 0) {
+        return false;
+      }
+
       await prisma.orderItemCart.update({
         where: { id: orderItem.id },
         data: {
-          quantity: orderItem.quantity + quantity,
+          quantity: newQuantity,
           totalPrice:
             orderItem.totalPrice +
             (await this.calculatePrice(foodId, quantity)),
         },
       });
+    } else if (quantity === -1) {
+      return false;
     } else {
       const createOneOrderItemCartResolver =
         new CreateOneOrderItemCartResolver();
