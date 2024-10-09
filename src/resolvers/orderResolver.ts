@@ -111,6 +111,9 @@ export class OrderResolver {
       if (!order) {
         throw new Error("order not found");
       }
+      if (order?.status == "DELIVERED") {
+        throw new Error("Order is being prepared you cannot cancel it now");
+      }
       if (order?.status !== "PENDING") {
         throw new Error("Order is being prepared you cannot cancel it now");
       }

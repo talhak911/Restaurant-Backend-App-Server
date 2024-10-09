@@ -40,7 +40,7 @@ export class CartResolver {
       const newQuantity = orderItem.quantity + quantity;
 
       if (newQuantity <= 0) {
-        return false;
+        throw new Error("Can't remove items more than in the cart");
       }
 
       await prisma.orderItemCart.update({
@@ -53,7 +53,7 @@ export class CartResolver {
         },
       });
     } else if (quantity === -1) {
-      return false;
+      throw new Error("Can't remove items , item is not in the cart");
     } else {
       const createOneOrderItemCartResolver =
         new CreateOneOrderItemCartResolver();
