@@ -37,12 +37,12 @@ export class CustomerResolver {
       throw new Error("Error while adding address: " + error.message);
     }
   }
-  @Mutation(() => Boolean || String)
+  @Mutation(() => [CustomerAddress])
   async addCustomerAddress(
     @Arg("name") name: string,
     @Arg("address") address: string,
     @Ctx() ctx: MyContext
-  ): Promise<boolean | string> {
+  ): Promise<CustomerAddress[]> {
     try {
       const userId = ctx?.user?.id;
       const newAddress = {
@@ -51,7 +51,7 @@ export class CustomerResolver {
         address,
       };
 
-      await ctx.prisma.customer.update({
+     const updatedCustomer = await ctx.prisma.customer.update({
         where: { id: userId },
         data: {
           address: {
@@ -60,7 +60,7 @@ export class CustomerResolver {
         },
       });
 
-      return true;
+      return updatedCustomer.address as CustomerAddressType[];
     } catch (error: any) {
       if (error.code === "P2025") {
         throw new Error("Customer not found");
