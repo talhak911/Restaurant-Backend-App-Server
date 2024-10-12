@@ -88,6 +88,11 @@ export class OrderResolver {
           status: { equals: status },
         };
       }
+      args.orderBy = [
+        {
+          createdAt: "desc",
+        },
+      ];
       const orders = await findManyOrderResolver.orders(ctx, info, args);
       return orders;
     } catch (error: any) {
@@ -112,7 +117,7 @@ export class OrderResolver {
         throw new Error("order not found");
       }
       if (order?.status == "DELIVERED") {
-        throw new Error("Order is being prepared you cannot cancel it now");
+        throw new Error("Order has been already delivered");
       }
       if (order?.status !== "PENDING") {
         throw new Error("Order is being prepared you cannot cancel it now");
