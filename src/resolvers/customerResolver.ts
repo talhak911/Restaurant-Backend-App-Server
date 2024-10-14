@@ -51,7 +51,7 @@ export class CustomerResolver {
         address,
       };
 
-     const updatedCustomer = await ctx.prisma.customer.update({
+      const updatedCustomer = await ctx.prisma.customer.update({
         where: { id: userId },
         data: {
           address: {
@@ -108,6 +108,7 @@ export class CustomerResolver {
   async updateCustomer(
     @Arg("name", { nullable: true }) name: string,
     @Arg("phone", { nullable: true }) phone: string,
+    @Arg("dateOfBirth", { nullable: true }) dateOfBirth: Date,
     @Info() info: GraphQLResolveInfo,
     @Ctx() ctx: MyContext
   ): Promise<boolean | string> {
@@ -124,7 +125,9 @@ export class CustomerResolver {
       if (name) {
         args.data.name = { set: name };
       }
-
+      if (dateOfBirth) {
+        args.data.dateOfBirth = { set: dateOfBirth };
+      }
       if (phone) {
         args.data.phone = { set: phone };
       }
