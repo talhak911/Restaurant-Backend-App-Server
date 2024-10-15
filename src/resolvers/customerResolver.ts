@@ -109,6 +109,7 @@ export class CustomerResolver {
     @Arg("name", { nullable: true }) name: string,
     @Arg("phone", { nullable: true }) phone: string,
     @Arg("dateOfBirth", { nullable: true }) dateOfBirth: Date,
+    @Arg("picture", { nullable: true }) picture: string,
     @Info() info: GraphQLResolveInfo,
     @Ctx() ctx: MyContext
   ): Promise<boolean | string> {
@@ -130,6 +131,11 @@ export class CustomerResolver {
       }
       if (phone) {
         args.data.phone = { set: phone };
+      }
+      if (picture) {
+        args.data.customer = {
+          update: { data: { picture: { set: picture } } },
+        };
       }
 
       await updateOneUserResolver.updateOneUser(ctx, info, args);
