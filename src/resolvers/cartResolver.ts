@@ -31,7 +31,9 @@ export class CartResolver {
       throw new Error("make customer account to place order");
     }
     const customerId = ctx?.user?.id as string;
-    await prisma.food.findUniqueOrThrow({ where: { id: foodId } });
+    const foodItemPrice = (
+      await prisma.food.findUniqueOrThrow({ where: { id: foodId } })
+    ).price;
     const orderItem = await prisma.orderItemCart.findFirst({
       where: { customerId, foodId },
     });
@@ -47,9 +49,9 @@ export class CartResolver {
         where: { id: orderItem.id },
         data: {
           quantity: newQuantity,
-          totalPrice:
-            orderItem.totalPrice +
-            (await this.calculatePrice(foodId, quantity)),
+          totalPrice: parseFloat(
+            (orderItem.totalPrice + foodItemPrice * quantity).toFixed(2)
+          ),
         },
       });
     } else if (quantity === -1) {
@@ -62,7 +64,7 @@ export class CartResolver {
         food: { connect: { id: foodId } },
         quantity,
         customer: { connect: { id: customerId } },
-        totalPrice: await this.calculatePrice(foodId, quantity),
+        totalPrice: parseFloat((foodItemPrice * quantity).toFixed(2)),
       };
       await createOneOrderItemCartResolver.createOneOrderItemCart(
         ctx,
@@ -105,13 +107,5 @@ export class CartResolver {
     }
 
     return cart;
-  }
-
-  private async calculatePrice(
-    foodId: string,
-    quantity: number
-  ): Promise<number> {
-    const food = await prisma.food.findUnique({ where: { id: foodId } });
-    return food ? food.price * quantity : 0;
   }
 }
