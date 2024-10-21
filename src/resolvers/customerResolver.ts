@@ -17,6 +17,7 @@ import {
 import {
   UpdateOneUserArgs,
   UpdateOneUserResolver,
+  User,
 } from "../../prisma/generated/type-graphql";
 import { GraphQLResolveInfo } from "graphql/type";
 
@@ -104,7 +105,7 @@ export class CustomerResolver {
     }
   }
 
-  @Mutation(() => Boolean || String)
+  @Mutation(() => User)
   async updateCustomer(
     @Arg("name", { nullable: true }) name: string,
     @Arg("phone", { nullable: true }) phone: string,
@@ -112,7 +113,7 @@ export class CustomerResolver {
     @Arg("picture", { nullable: true }) picture: string,
     @Info() info: GraphQLResolveInfo,
     @Ctx() ctx: MyContext
-  ): Promise<boolean | string> {
+  ): Promise<User | null> {
     try {
       const userId = ctx?.user?.id;
       await ctx.prisma.customer.findUniqueOrThrow({
@@ -138,8 +139,8 @@ export class CustomerResolver {
         };
       }
 
-      await updateOneUserResolver.updateOneUser(ctx, info, args);
-      return true;
+      const user = await updateOneUserResolver.updateOneUser(ctx, info, args);
+      return user;
     } catch (error: any) {
       throw new Error("Error while updating customer " + error.message);
     }
