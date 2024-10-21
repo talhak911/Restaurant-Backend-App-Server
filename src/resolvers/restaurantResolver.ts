@@ -46,7 +46,6 @@ export class RestaurantResolver {
       await createoneFoodResolver.createOneFood(ctx, info, args);
       return true;
     } catch (error: any) {
-      console.log(error);
       throw new Error("error in add food item " + error.message);
     }
   }
@@ -71,7 +70,6 @@ export class RestaurantResolver {
 
       return true;
     } catch (error: any) {
-      console.log(error);
       throw new Error("error in update food item " + error.message);
     }
   }
@@ -94,7 +92,6 @@ export class RestaurantResolver {
       });
       return true;
     } catch (error: any) {
-      console.log(error);
       throw new Error("error in delete food item " + error.message);
     }
   }

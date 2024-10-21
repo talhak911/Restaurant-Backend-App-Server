@@ -77,8 +77,7 @@ export class CartResolver {
   @Mutation(() => Boolean)
   async removeFromCart(
     @Ctx() ctx: MyContext,
-    @Arg("foodId") foodId: string,
-    @Info() info: GraphQLResolveInfo
+    @Arg("foodId") foodId: string
   ): Promise<boolean> {
     const customerId = ctx?.user?.id as string;
 
