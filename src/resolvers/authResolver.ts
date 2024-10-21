@@ -24,6 +24,7 @@ import {
 import { sendOTPEmail } from "../utils/mailer";
 import { GraphQLResolveInfo } from "graphql/type";
 import { MyContext } from "../types/types";
+import { SignInResponse } from "../gql/schema";
 
 @Resolver()
 export class AuthResolver {
@@ -237,26 +238,69 @@ export class AuthResolver {
     }
   }
 
-  @Mutation(() => String)
+  @Mutation(() => SignInResponse)
   async signIn(
     @Ctx() ctx: MyContext,
     @Arg("email") email: string,
     @Arg("password") password: string
-  ): Promise<string> {
-    const user = await ctx.prisma.user.findUnique({ where: { email } });
-
+  ): Promise<SignInResponse> {
+    const user = await ctx.prisma.user.findUnique({
+      where: { email },
+      include: { customer: true, restaurant: true },
+    });
     if (!user) throw new Error("User not found");
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) throw new Error("Incorrect password");
     if (!user.verification) {
       throw new Error("Verify your account");
     }
-
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET!,
+      { expiresIn: "15m" }
+    );
+
+    const refreshToken = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_REFRESH_SECRET!,
       { expiresIn: "7d" }
     );
-    return token;
+
+    return {
+      user,
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  @Mutation(() => String)
+  async refreshToken(
+    @Ctx() ctx: MyContext,
+    @Arg("refreshToken") refreshToken: string
+  ): Promise<string> {
+    try {
+      const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!);
+      if (typeof payload === "string") {
+        throw new Error("Invalid refresh token payload");
+      }
+
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: payload.id },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const newAccessToken = jwt.sign(
+        { id: user.id, role: user.role },
+        process.env.JWT_SECRET!,
+        { expiresIn: "15m" }
+      );
+
+      return newAccessToken;
+    } catch (error: any) {
+      throw new Error("Refresh token is invalid or expired");
+    }
   }
 }
