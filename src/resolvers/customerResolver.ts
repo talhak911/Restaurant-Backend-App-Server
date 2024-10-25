@@ -20,6 +20,7 @@ import {
   User,
 } from "../../prisma/generated/type-graphql";
 import { GraphQLResolveInfo } from "graphql/type";
+import { ReviewsParam } from "../gql/schema";
 
 @Resolver()
 @UseMiddleware(isAuth)
@@ -103,6 +104,61 @@ export class CustomerResolver {
     } catch (error: any) {
       throw new Error(error.message);
     }
+  }
+
+  @Mutation(() => Boolean)
+  async addReview(
+    @Arg("orderId") orderId: number,
+    @Arg("reviews", () => [ReviewsParam]) reviews: ReviewsParam[],
+    @Ctx() ctx: MyContext
+  ): Promise<boolean> {
+    const userId = ctx.user?.id;
+
+    const order = await ctx.prisma.order.findUniqueOrThrow({
+      where: { id: orderId, customerId: userId },
+      select: { isReviewed: true },
+    });
+
+    if (order.isReviewed) {
+      throw new Error("You have already given a review for this order");
+    }
+
+    await Promise.all(
+      reviews.map(async (item) => {
+        const food = await ctx.prisma.food.findUniqueOrThrow({
+          where: { id: item.foodId },
+        });
+
+        const clampedRating = Math.max(1, Math.min(item.rating, 5));
+        const newTotalCount = food.totalRatingsCount + 1;
+        const newAverageRating =
+          (food.averageRating * food.totalRatingsCount + clampedRating) /
+          newTotalCount;
+
+        await ctx.prisma.review.create({
+          data: {
+            rating: clampedRating,
+            comment: item.comment,
+            food: { connect: { id: item.foodId } },
+            customer: { connect: { id: userId } },
+          },
+        });
+
+        await ctx.prisma.food.update({
+          where: { id: item.foodId },
+          data: {
+            averageRating: newAverageRating,
+            totalRatingsCount: newTotalCount,
+          },
+        });
+      })
+    );
+
+    await ctx.prisma.order.update({
+      where: { id: orderId },
+      data: { isReviewed: true },
+    });
+    return true;
   }
 
   @Mutation(() => User)
