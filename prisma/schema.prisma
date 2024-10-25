@@ -13,12 +13,12 @@ generator typegraphql {
 }
 
 model User {
-  id                    String    @id @default(uuid())
-  email                 String    @unique
+  id                    String      @id @default(uuid())
+  email                 String      @unique
   phone                 String
   dateOfBirth           DateTime
-  customer Customer?
-  restaurant Restaurant?
+  customer              Customer?
+  restaurant            Restaurant?
   name                  String
   /// @TypeGraphQL.omit(output: true)
   password              String
@@ -28,7 +28,7 @@ model User {
   /// @TypeGraphQL.omit(output: true, input: true)
   verificationOtpExpiry DateTime?
   /// @TypeGraphQL.omit(input: true)
-  verification          Boolean   @default(false)
+  verification          Boolean     @default(false)
   /// @TypeGraphQL.omit(output: true, input: true)
   resetPassOtp          String?
   /// @TypeGraphQL.omit(output: true, input: true)
@@ -40,8 +40,12 @@ model Customer {
   picture String?
   user    User            @relation(fields: [id], references: [id])
   id      String          @id @unique
+   /// @TypeGraphQL.omit(input: true)
   orders  Order[]
+  /// @TypeGraphQL.omit(input: true)
   cart    OrderItemCart[]
+ /// @TypeGraphQL.omit(input: true)
+  Review Review[]
 }
 
 model Restaurant {
@@ -64,6 +68,26 @@ model Food {
   restaurant   Restaurant      @relation(fields: [restaurantId], references: [id])
   restaurantId String
   carts        OrderItemCart[]
+
+ /// @TypeGraphQL.omit(input: true)
+  orderCount        Int      @default(0)
+   /// @TypeGraphQL.omit(input: true)
+  Review            Review[]
+   /// @TypeGraphQL.omit(input: true)
+  averageRating     Float    @default(0)
+   /// @TypeGraphQL.omit(input: true)
+  totalRatingsCount Int      @default(0)
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  rating     Int
+  comment    String?
+  food       Food     @relation(fields: [foodId], references: [id])
+  foodId     String
+  customer   Customer @relation(fields: [customerId], references: [id])
+  customerId String
+  createdAt  DateTime @default(now())
 }
 
 model OrderItemCart {
@@ -89,6 +113,7 @@ model Order {
   deliveryTime    DateTime?
   status          OrderStatus @default(PENDING)
   createdAt       DateTime    @default(now())
+  isReviewed      Boolean     @default(false)
 }
 
 enum OrderStatus {
