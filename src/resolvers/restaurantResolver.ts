@@ -100,14 +100,17 @@ export class RestaurantResolver {
   @Query(() => [Food])
   async fetchFoods(
     @Arg("category", { nullable: true }) category: FoodCategory,
-    @Ctx() ctx: MyContext
+    @Ctx() ctx: MyContext,
+    @Arg("limit", () => Int, { defaultValue: 15 }) limit: number,
+    @Arg("offset", () => Int, { defaultValue: 0 }) offset: number
   ): Promise<Food[]> {
     try {
-      if (category) {
-        const foods = await ctx.prisma.food.findMany({ where: { category } });
-        return foods;
-      }
-      const foods = await ctx.prisma.food.findMany();
+      const filters = category ? { category } : {};
+      const foods = await ctx.prisma.food.findMany({
+        where: filters,
+        take: limit,
+        skip: offset,
+      });
       return foods;
     } catch (error: any) {
       throw new Error("error in fetch foods " + error.message);
@@ -116,7 +119,7 @@ export class RestaurantResolver {
   @Query(() => Food)
   async fetchFood(
     @Arg("foodId") foodId: string,
-    @Ctx() ctx: MyContext
+    @Ctx() ctx: MyContext,
   ): Promise<Food | null> {
     try {
       const food = await ctx.prisma.food.findUniqueOrThrow({
@@ -124,7 +127,7 @@ export class RestaurantResolver {
       });
       return food;
     } catch (error: any) {
-      throw new Error("error in fetch food " + error.message);
+      throw new Error("error in fetch food " + error.message); 
     }
   }
 
