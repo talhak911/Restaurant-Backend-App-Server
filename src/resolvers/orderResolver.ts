@@ -44,6 +44,15 @@ export class OrderResolver {
       0
     );
 
+    await Promise.all(
+      cartItems.map(async (item) => {
+        await ctx.prisma.food.update({
+          where: { id: item.foodId },
+          data: { orderCount: { increment: item.quantity } },
+        });
+      })
+    );
+
     const order = await ctx.prisma.order.create({
       data: {
         deliveryAddress,
