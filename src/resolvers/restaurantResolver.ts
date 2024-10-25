@@ -2,6 +2,7 @@ import {
   Arg,
   Ctx,
   Info,
+  Int,
   Mutation,
   Query,
   Resolver,
@@ -127,6 +128,59 @@ export class RestaurantResolver {
     }
   }
 
+  @Query(() => [Food])
+  async searchFoods(
+    @Arg("name") name: string,
+    @Ctx() ctx: MyContext
+  ): Promise<Food[]> {
+    try {
+      const foods = await ctx.prisma.food.findMany({
+        where: {
+          name: {
+            contains: name,
+            mode: "insensitive",
+          },
+        },
+      });
+      return foods;
+    } catch (error: any) {
+      throw new Error("Error searching foods by name: " + error.message);
+    }
+  }
+
+  @Query(() => [Food])
+  async getBestSellers(
+    @Ctx() ctx: MyContext,
+    @Arg("limit", () => Int, { defaultValue: 8 }) limit: number
+  ): Promise<Food[]> {
+    try {
+      const bestSellers = await ctx.prisma.food.findMany({
+        orderBy: { orderCount: "desc" },
+        take: limit,
+      });
+
+      return bestSellers;
+    } catch (error: any) {
+      throw new Error("Error fetching best sellers: " + error.message);
+    }
+  }
+
+  @Query(() => [Food])
+  async getSuggestion(
+    @Ctx() ctx: MyContext,
+    @Arg("limit", () => Int, { defaultValue: 8 }) limit: number
+  ): Promise<Food[]> {
+    try {
+      const suggestedFoods = await ctx.prisma.food.findMany({
+        orderBy: { averageRating: "desc" },
+        take: limit,
+      });
+
+      return suggestedFoods;
+    } catch (error: any) {
+      throw new Error("Error fetching best sellers: " + error.message);
+    }
+  }
   @Mutation(() => String || Boolean)
   @UseMiddleware(isAuth)
   async updateRestaurant(
