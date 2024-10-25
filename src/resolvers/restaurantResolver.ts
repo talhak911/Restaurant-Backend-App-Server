@@ -154,7 +154,7 @@ export class RestaurantResolver {
   @Query(() => [Food])
   async getBestSellers(
     @Ctx() ctx: MyContext,
-    @Arg("limit", () => Int, { defaultValue: 8 }) limit: number
+    @Arg("limit", () => Int, { defaultValue: 8 ,nullable:true}) limit?: number
   ): Promise<Food[]> {
     try {
       const bestSellers = await ctx.prisma.food.findMany({
