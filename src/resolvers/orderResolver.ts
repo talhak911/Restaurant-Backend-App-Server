@@ -128,6 +128,9 @@ export class OrderResolver {
       if (order?.status == "DELIVERED") {
         throw new Error("Order has been already delivered");
       }
+      if (order?.status == "CANCELED") {
+        throw new Error("Order has been canceled already");
+      }
       if (order?.status !== "PENDING") {
         throw new Error("Order is being prepared you cannot cancel it now");
       }
