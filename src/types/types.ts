@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { FoodCategory, PrismaClient } from "@prisma/client";
 import { YogaInitialContext } from "graphql-yoga";
 import { Field, ObjectType } from "type-graphql";
 
@@ -23,4 +23,8 @@ export type MyContext = {
   };
 } & YogaInitialContext;
 
-export type CustomerAddressType = { id: string; name: string; address: string }
+export type CustomerAddressType = { id: string; name: string; address: string };
+export type FetchFoodsFilters = {
+  category?: FoodCategory;
+  name?: { contains: string; mode: "insensitive" };
+};

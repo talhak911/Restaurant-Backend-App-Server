@@ -24,7 +24,7 @@ import {
   UpdateOneRestaurantResolver,
 } from "../../prisma/generated/type-graphql";
 import { GraphQLResolveInfo } from "graphql";
-import { MyContext } from "../types/types";
+import { FetchFoodsFilters, MyContext } from "../types/types";
 
 @Resolver()
 @UseMiddleware(isAuth)
@@ -102,10 +102,19 @@ export class RestaurantResolver {
     @Arg("category", { nullable: true }) category: FoodCategory,
     @Ctx() ctx: MyContext,
     @Arg("limit", () => Int, { defaultValue: 15 }) limit: number,
-    @Arg("offset", () => Int, { defaultValue: 0 }) offset: number
+    @Arg("offset", () => Int, { defaultValue: 0 }) offset: number,
+    @Arg("name", { nullable: true }) name?: string
   ): Promise<Food[]> {
     try {
-      const filters = category ? { category } : {};
+      const filters: FetchFoodsFilters = {};
+
+      if (category) filters.category = category;
+      if (name) {
+        filters.name = {
+          contains: name,
+          mode: "insensitive",
+        };
+      }
       const foods = await ctx.prisma.food.findMany({
         where: filters,
         take: limit,
@@ -119,7 +128,7 @@ export class RestaurantResolver {
   @Query(() => Food)
   async fetchFood(
     @Arg("foodId") foodId: string,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: MyContext
   ): Promise<Food | null> {
     try {
       const food = await ctx.prisma.food.findUniqueOrThrow({
@@ -127,7 +136,7 @@ export class RestaurantResolver {
       });
       return food;
     } catch (error: any) {
-      throw new Error("error in fetch food " + error.message); 
+      throw new Error("error in fetch food " + error.message);
     }
   }
 
@@ -154,7 +163,7 @@ export class RestaurantResolver {
   @Query(() => [Food])
   async getBestSellers(
     @Ctx() ctx: MyContext,
-    @Arg("limit", () => Int, { defaultValue: 8 ,nullable:true}) limit?: number
+    @Arg("limit", () => Int, { defaultValue: 8, nullable: true }) limit?: number
   ): Promise<Food[]> {
     try {
       const bestSellers = await ctx.prisma.food.findMany({
@@ -171,7 +180,7 @@ export class RestaurantResolver {
   @Query(() => [Food])
   async getSuggestion(
     @Ctx() ctx: MyContext,
-    @Arg("limit", () => Int, { defaultValue: 8 ,nullable:true}) limit?: number
+    @Arg("limit", () => Int, { defaultValue: 8, nullable: true }) limit?: number
   ): Promise<Food[]> {
     try {
       const suggestedFoods = await ctx.prisma.food.findMany({
