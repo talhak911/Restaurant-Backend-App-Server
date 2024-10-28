@@ -36,7 +36,7 @@ export class CustomerResolver {
 
       return customer.address as CustomerAddressType[];
     } catch (error: any) {
-      throw new Error("Error while adding address: " + error.message);
+      throw new Error(error.message);
     }
   }
   @Mutation(() => [CustomerAddress])
@@ -67,7 +67,7 @@ export class CustomerResolver {
       if (error.code === "P2025") {
         throw new Error("Customer not found");
       }
-      throw new Error("Error while adding address: " + error.message);
+      throw new Error(error.message);
     }
   }
 
@@ -131,10 +131,12 @@ export class CustomerResolver {
 
         const clampedRating = Math.max(1, Math.min(item.rating, 5));
         const newTotalCount = food.totalRatingsCount + 1;
-        const newAverageRating =
-          (food.averageRating * food.totalRatingsCount + clampedRating) /
-          newTotalCount;
-
+        const newAverageRating = parseFloat(
+          (
+            (food.averageRating * food.totalRatingsCount + clampedRating) /
+            newTotalCount
+          ).toFixed(1)
+        );
         await ctx.prisma.review.create({
           data: {
             rating: clampedRating,
@@ -198,7 +200,7 @@ export class CustomerResolver {
       const user = await updateOneUserResolver.updateOneUser(ctx, info, args);
       return user;
     } catch (error: any) {
-      throw new Error("Error while updating customer " + error.message);
+      throw new Error(error.message);
     }
   }
 }
