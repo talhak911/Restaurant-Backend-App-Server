@@ -105,7 +105,7 @@ export class OrderResolver {
       const orders = await findManyOrderResolver.orders(ctx, info, args);
       return orders;
     } catch (error: any) {
-      throw new Error("error while fetching order " + error.message);
+      throw new Error("error fetching orders " + error.message);
     }
   }
 
@@ -143,7 +143,7 @@ export class OrderResolver {
 
       return true;
     } catch (error: any) {
-      throw new Error("error in cancel order " + error.message);
+      throw new Error(error.message);
     }
   }
   private async getRestaurantIdFromFood(foodId: string): Promise<string> {
