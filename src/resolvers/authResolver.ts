@@ -122,6 +122,23 @@ export class AuthResolver {
     return true;
   }
 
+  @Query(() => Boolean)
+  async findUser(
+    @Ctx() ctx: MyContext,
+    @Arg("email") email: string
+  ): Promise<boolean> {
+    const user = await ctx.prisma.user.findUnique({
+      where: { email },
+    });
+    if (!user) {
+      return false;
+    }
+    if (user?.provider === "email") {
+      throw new Error("This email is already registed with another account");
+    }
+    return true;
+  }
+
   @Mutation(() => Boolean)
   async resetPassword(
     @Ctx() ctx: MyContext,

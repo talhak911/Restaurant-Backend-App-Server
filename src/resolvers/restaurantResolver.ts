@@ -140,25 +140,6 @@ export class RestaurantResolver {
     }
   }
 
-  @Query(() => [Food])
-  async searchFoods(
-    @Arg("name") name: string,
-    @Ctx() ctx: MyContext
-  ): Promise<Food[]> {
-    try {
-      const foods = await ctx.prisma.food.findMany({
-        where: {
-          name: {
-            contains: name,
-            mode: "insensitive",
-          },
-        },
-      });
-      return foods;
-    } catch (error: any) {
-      throw new Error("Error searching foods by name: " + error.message);
-    }
-  }
 
   @Query(() => [Food])
   async getBestSellers(
