@@ -23,8 +23,8 @@ import {
 } from "../../prisma/generated/type-graphql";
 import { sendOTPEmail } from "../utils/mailer";
 import { GraphQLResolveInfo } from "graphql/type";
-import { MyContext } from "../types/types";
-import { SignInResponse } from "../gql/schema";
+import { CustomTokenPayload, MyContext } from "../types/types";
+import { OAuthSignUpInputs, SignInResponse } from "../gql/schema";
 
 @Resolver()
 export class AuthResolver {
@@ -93,6 +93,126 @@ export class AuthResolver {
     }
   }
 
+  @Mutation(() => SignInResponse)
+  async oAuthSignIn(
+    @Ctx() ctx: MyContext,
+    @Arg("token") token: string
+  ): Promise<SignInResponse> {
+    try {
+      const decoded: CustomTokenPayload = jwt.verify(
+        token,
+        process.env.JWT_SECRET!
+      ) as CustomTokenPayload;
+      const { email } = decoded;
+      const user = await ctx.prisma.user.findUniqueOrThrow({
+        where: { email },
+        include: { customer: true, restaurant: true },
+      });
+
+      if (!user) {
+        throw new Error("Something went wrong");
+      }
+      const accessToken = jwt.sign(
+        { id: user.id, role: user.role },
+        process.env.JWT_SECRET!,
+        { expiresIn: "15m" }
+      );
+      const refreshToken = jwt.sign(
+        { id: user.id, role: user.role },
+        process.env.JWT_REFRESH_SECRET!,
+        { expiresIn: "7d" }
+      );
+
+      return {
+        user,
+        accessToken,
+        refreshToken,
+      };
+    } catch (error: any) {
+      throw new Error(error.message);
+    }
+  }
+  @Mutation(() => SignInResponse)
+  async oAuthSignUp(
+    @Ctx() ctx: MyContext,
+    @Info() info: GraphQLResolveInfo,
+    @Arg("data") data: OAuthSignUpInputs,
+    @Arg("token") token: string
+  ): Promise<SignInResponse> {
+    try {
+      const decoded: CustomTokenPayload = jwt.verify(
+        token,
+        process.env.JWT_SECRET!
+      ) as CustomTokenPayload;
+      const { email, provider } = decoded;
+      const { name, password, role, dateOfBirth, phone,picture } = data;
+      if (!isEmailValid(email)) {
+        throw new Error("Email is not valid");
+      }
+      if (new Date(dateOfBirth).getTime() > new Date().getTime()) {
+        throw new Error("Date of birth should not be in the future");
+      }
+      if (password.length < 8) {
+        throw new Error("Password should be minimum 8 characters long");
+      }
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = await ctx.prisma.user.findUnique({
+        where: { email },
+      });
+      if (user) {
+        throw new Error("Something went wrong, User already exists");
+      }
+      const Newuser = await ctx.prisma.user.create({
+        data: {
+          dateOfBirth,
+          phone,
+          email,
+          password: hashedPassword,
+          role,
+          name,
+          provider,
+          verification: true,
+        },
+      });
+      if (role === "CUSTOMER") {
+        const createCustomerResolver = new CreateOneCustomerResolver();
+        const customerArgs = new CreateOneCustomerArgs();
+        customerArgs.data = {
+          user: { connect: { id: Newuser.id }},
+          picture
+        };
+        await createCustomerResolver.createOneCustomer(ctx, info, customerArgs);
+      } else if (role === "RESTAURANT") {
+        const createRestaurantResolver = new CreateOneRestaurantResolver();
+        const restaurantArgs = new CreateOneRestaurantArgs();
+        restaurantArgs.data = {
+          user: { connect: { id: Newuser.id } },
+        };
+        await createRestaurantResolver.createOneRestaurant(
+          ctx,
+          info,
+          restaurantArgs
+        );
+      }
+      const accessToken = jwt.sign(
+        { id: Newuser.id, role: Newuser.role },
+        process.env.JWT_SECRET!,
+        { expiresIn: "15m" }
+      );
+      const refreshToken = jwt.sign(
+        { id: Newuser.id, role: Newuser.role },
+        process.env.JWT_REFRESH_SECRET!,
+        { expiresIn: "7d" }
+      );
+      return {
+        user: Newuser,
+        accessToken,
+        refreshToken,
+      };
+    } catch (error: any) {
+      throw new Error(error.message);
+    }
+  }
   @Mutation(() => Boolean)
   async verifyAccount(
     @Ctx() ctx: MyContext,

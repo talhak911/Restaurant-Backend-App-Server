@@ -28,3 +28,7 @@ export type FetchFoodsFilters = {
   category?: FoodCategory;
   name?: { contains: string; mode: "insensitive" };
 };
+export type CustomTokenPayload = {
+  email: string;
+  provider?: string;
+};

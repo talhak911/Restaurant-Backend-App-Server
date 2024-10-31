@@ -1,5 +1,5 @@
 import { ObjectType, Field, InputType } from "type-graphql";
-import { User } from "../../prisma/generated/type-graphql";
+import { Role, User } from "../../prisma/generated/type-graphql";
 
 @ObjectType()
 export class SignInResponse {
@@ -25,3 +25,20 @@ export class ReviewsParam {
   @Field({ nullable: true })
   comment?: string;
 }
+
+@InputType()
+export class OAuthSignUpInputs {
+  @Field()
+  name!: string;
+  @Field()
+  password!: string;
+  @Field()
+  role!: Role;
+  @Field()
+  dateOfBirth!: string;
+  @Field()
+  phone!: string
+  @Field({ nullable: true })
+  picture?: string
+}
+

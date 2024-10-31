@@ -17,10 +17,11 @@ model User {
   email                 String      @unique
   phone                 String
   dateOfBirth           DateTime
-  provider              String @default("email")
   customer              Customer?
   restaurant            Restaurant?
   name                  String
+   /// @TypeGraphQL.omit(input: true)
+  provider              String @default("email")
   /// @TypeGraphQL.omit(output: true)
   password              String
   role                  Role
