@@ -105,7 +105,18 @@ export class CustomerResolver {
       throw new Error(error.message);
     }
   }
-
+  @Mutation(() => Boolean)
+  async updateOrderNotifications(
+    @Arg("status") status: boolean,
+    @Ctx() ctx: MyContext
+  ): Promise<boolean> {
+    const userId = ctx.user?.id;
+    await ctx.prisma.customer.update({
+      where: { id: userId },
+      data: { wantsOrderNotifications: status },
+    });
+    return true
+  }
   @Mutation(() => Boolean)
   async addReview(
     @Arg("orderId") orderId: number,
