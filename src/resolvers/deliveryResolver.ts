@@ -2,6 +2,7 @@ import { Arg, Ctx, Mutation, Resolver, UseMiddleware } from "type-graphql";
 import { MyContext } from "../types/types";
 import { Order, OrderStatus } from "../../prisma/generated/type-graphql";
 import { isAuth } from "../middleware/middleware";
+import { sendOrderStatusNotification } from "../utils/notifications";
 
 @Resolver()
 @UseMiddleware(isAuth)
@@ -49,8 +50,11 @@ export class DeliveryResolver {
         deliveryTime:
           status === "DELIVERED" ? deliveryTime || new Date() : null,
       },
+      include: { customer: true },
     });
-
+    if (order.customer.wantsOrderNotifications) {
+      sendOrderStatusNotification({ status, userId: order.customerId });
+    }
     return order;
   }
 }

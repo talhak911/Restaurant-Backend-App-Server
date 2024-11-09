@@ -20,8 +20,8 @@ model User {
   customer              Customer?
   restaurant            Restaurant?
   name                  String
-   /// @TypeGraphQL.omit(input: true)
-  provider              String @default("email")
+  /// @TypeGraphQL.omit(input: true)
+  provider              String      @default("email")
   /// @TypeGraphQL.omit(output: true)
   password              String
   role                  Role
@@ -38,16 +38,17 @@ model User {
 }
 
 model Customer {
-  address Json[]
-  picture String?
-  user    User            @relation(fields: [id], references: [id])
-  id      String          @id @unique
-   /// @TypeGraphQL.omit(input: true)
-  orders  Order[]
+  address                 Json[]
+  picture                 String?
+  user                    User            @relation(fields: [id], references: [id])
+  id                      String          @id @unique
+  wantsOrderNotifications Boolean         @default(true)
   /// @TypeGraphQL.omit(input: true)
-  cart    OrderItemCart[]
- /// @TypeGraphQL.omit(input: true)
-  Review Review[]
+  orders                  Order[]
+  /// @TypeGraphQL.omit(input: true)
+  cart                    OrderItemCart[]
+  /// @TypeGraphQL.omit(input: true)
+  Review                  Review[]
 }
 
 model Restaurant {
@@ -71,13 +72,13 @@ model Food {
   restaurantId String
   carts        OrderItemCart[]
 
- /// @TypeGraphQL.omit(input: true)
+  /// @TypeGraphQL.omit(input: true)
   orderCount        Int      @default(0)
-   /// @TypeGraphQL.omit(input: true)
+  /// @TypeGraphQL.omit(input: true)
   Review            Review[]
-   /// @TypeGraphQL.omit(input: true)
+  /// @TypeGraphQL.omit(input: true)
   averageRating     Float    @default(0)
-   /// @TypeGraphQL.omit(input: true)
+  /// @TypeGraphQL.omit(input: true)
   totalRatingsCount Int      @default(0)
 }
 
